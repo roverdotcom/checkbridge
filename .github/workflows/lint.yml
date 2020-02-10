@@ -1,16 +1,11 @@
 name: Test
 
 on:
-  push:
   pull_request:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out Git repository
@@ -20,9 +15,6 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
-
-      - name: Run Go tests
-        run: go test ./...
 
       # TODO: Remove step once actions/setup-go adds $GOPATH/bin to $PATH by default
       # See https://github.com/actions/setup-go/issues/14
@@ -34,7 +26,14 @@ jobs:
       - name: Install golint
         run: go get golang.org/x/lint/golint
 
-      - name: Run golint for internal testing
-        run: golint ./... | go run main.go golint
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
+      - name: Run golint
+        run: golint ./...
+
+      - name: Check gofmt
+        run: |
+          GOFMT_OUT="$(gofmt -d .)"
+          if [[ -n "${GOFMT_OUT}" ]]; then
+            echo "Gofmt changes:"
+            echo "${GOFMT_OUT}"
+            exit 2
+          fi
