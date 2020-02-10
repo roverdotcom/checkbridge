@@ -12,14 +12,16 @@ const (
 
 // Annotation represents a line-level annotation
 type Annotation struct {
-	Path    string
-	Line    int `json:"start_line"`
-	Column  int
-	Message string
-	Level   Level `json:"annotation_level"`
+	Path    string `json:"path"`
+	Line    int    `json:"start_line"`
+	Column  int    `json:"column"`
+	Message string `json:"message"`
+	Level   Level  `json:"annotation_level"`
 }
 
 // Result holds the output of a parser
 type Result struct {
-	Annotations []Annotation
+	Annotations []Annotation `json:"annotations"`
+	Title       string       `json:"title"`
+	Summary     string       `json:"summary"`
 }
