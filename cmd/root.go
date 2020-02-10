@@ -28,9 +28,10 @@ func configureLogging(cmd *cobra.Command) {
 
 func init() {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
+
+	rootCmd.AddCommand(golintCmd)
 }
 
-// Execute is the entrypoint of the CLI application
 func Execute() error {
 	return rootCmd.Execute()
 }
