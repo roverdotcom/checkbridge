@@ -37,3 +37,8 @@ jobs:
             echo "${GOFMT_OUT}"
             exit 2
           fi
+
+      - name: Run golint for internal testing
+        run: golint ./... | go run main.go golint
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
