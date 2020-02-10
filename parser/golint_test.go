@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	"bufio"
 	"bytes"
 	"testing"
 
@@ -11,7 +10,7 @@ import (
 )
 
 func makeLinter(input string) parser.Parser {
-	return parser.NewGolinter(bufio.NewReader(bytes.NewBufferString(input)))
+	return parser.NewGolinter(bytes.NewBufferString(input))
 }
 
 func TestGolinter_ValidMatches(t *testing.T) {
