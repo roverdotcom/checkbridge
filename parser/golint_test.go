@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func makeLinter(input string) parser.Golinter {
+func makeLinter(input string) parser.Parser {
 	return parser.NewGolinter(bufio.NewReader(bytes.NewBufferString(input)))
 }
 
