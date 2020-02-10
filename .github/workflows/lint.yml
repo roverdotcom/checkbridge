@@ -1,0 +1,44 @@
+name: Lint
+
+on:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+
+      # TODO: Remove step once actions/setup-go adds $GOPATH/bin to $PATH by default
+      # See https://github.com/actions/setup-go/issues/14
+      - name: Add Go to $PATH
+        run: |
+          echo "::set-env name=GOPATH::$(go env GOPATH)"
+          echo "::add-path::$(go env GOPATH)/bin"
+
+      - name: Install golint
+        run: go get golang.org/x/lint/golint
+
+      - name: Run golint
+        run: golint ./...
+
+      - name: Check gofmt
+        run: |
+          GOFMT_OUT="$(gofmt -d .)"
+          if [[ -n "${GOFMT_OUT}" ]]; then
+            echo "Gofmt changes:"
+            echo "${GOFMT_OUT}"
+            exit 2
+          fi
+
+      - name: Run golint for internal testing
+        run: golint ./... | go run main.go golint
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
