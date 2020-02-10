@@ -29,7 +29,7 @@ var golintCmd = &cobra.Command{
 			return
 		}
 
-		logrus.Infof("Got results: %s", results)
+		logrus.Infof("Got results: %+v", results)
 		os.Exit(1)
 	},
 }
