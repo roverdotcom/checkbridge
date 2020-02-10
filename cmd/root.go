@@ -32,6 +32,7 @@ func init() {
 	rootCmd.AddCommand(golintCmd)
 }
 
+// Execute is the entrypoint of the application
 func Execute() error {
 	return rootCmd.Execute()
 }
