@@ -16,6 +16,15 @@ jobs:
         with:
           go-version: 1.13
 
+      - name: Check gofmt
+        run: |
+          GOFMT_OUT="$(gofmt -d .)"
+          if [[ -n "${GOFMT_OUT}" ]]; then
+            echo "Gofmt changes:"
+            echo "${GOFMT_OUT}"
+            exit 2
+          fi
+
       # TODO: Remove step once actions/setup-go adds $GOPATH/bin to $PATH by default
       # See https://github.com/actions/setup-go/issues/14
       - name: Add Go to $PATH
@@ -25,18 +34,6 @@ jobs:
 
       - name: Install golint
         run: go get golang.org/x/lint/golint
-
-      - name: Run golint
-        run: golint ./...
-
-      - name: Check gofmt
-        run: |
-          GOFMT_OUT="$(gofmt -d .)"
-          if [[ -n "${GOFMT_OUT}" ]]; then
-            echo "Gofmt changes:"
-            echo "${GOFMT_OUT}"
-            exit 2
-          fi
 
       - name: Run golint for internal testing
         run: golint ./... | go run main.go golint
