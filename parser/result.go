@@ -7,16 +7,16 @@ const (
 	// LevelWarning is the warning level
 	LevelWarning Level = "warning"
 	// LevelError is the error level
-	LevelError Level = "error"
+	LevelError Level = "failure"
 )
 
 // Annotation represents a line-level annotation
 type Annotation struct {
 	Path    string
-	Line    int
+	Line    int `json:"start_line"`
 	Column  int
 	Message string
-	Level   Level
+	Level   Level `json:"annotation_level"`
 }
 
 // Result holds the output of a parser
