@@ -66,7 +66,7 @@ func (c client) CreateCheck(check CheckRun) error {
 		return err
 	}
 	url := c.checkURL()
-	logrus.WithField("url", url).Debug("Making HTTP request to GitHub check-runs API")
+	logrus.WithField("url", url).WithField("body", buf.String()).Debug("Making HTTP request to GitHub check-runs API")
 
 	req, err := http.NewRequest(http.MethodPost, url, &buf)
 	if err != nil {

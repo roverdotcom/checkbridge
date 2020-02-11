@@ -21,6 +21,7 @@ package cmd
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 
@@ -89,6 +90,9 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 			logrus.Info("Created GitHub check as failure for parse error")
 			os.Exit(3)
 		}
+
+		run.Output.Summary = fmt.Sprintf("%s completed", name)
+		run.Output.Title = name
 
 		if len(result.Annotations) == 0 {
 			logrus.Infof("No violations reported from %s", name)

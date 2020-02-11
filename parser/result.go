@@ -40,7 +40,7 @@ type Annotation struct {
 
 // Result holds the output of a parser
 type Result struct {
-	Annotations []Annotation `json:"annotations"`
+	Annotations []Annotation `json:"annotations,omitempty"`
 	Title       string       `json:"title"`
 	Summary     string       `json:"summary"`
 }
