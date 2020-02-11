@@ -39,3 +39,16 @@ jobs:
         run: golint ./... | go run main.go golint
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
+
+      - name: Install addlicense
+        run: https://github.com/google/addlicense
+
+      - name: Check .go files have license headers
+        run: |
+          addlicense -f LICENSE **/*.go
+          GIT_DIFF="$(git diff)"
+          if [[ -n "${GIT_DIFF}" ]]; then
+            echo "License headers needed (run 'addlicense -f LICENSE **/*.go' and commit):"
+            echo "${GIT_DIFF}"
+            exit 2
+          fi
