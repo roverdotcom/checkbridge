@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 
 	"github.com/roverdotcom/checkbridge/github"
 	"github.com/roverdotcom/checkbridge/parser"
@@ -39,9 +40,12 @@ var defaultPerms = map[string]string{
 }
 
 func getHeadSha() (string, error) {
-	// TODO allow configuring via command line options, fall back to reading from
-	// the repo checkout
-	return os.Getenv("GITHUB_SHA"), nil
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
