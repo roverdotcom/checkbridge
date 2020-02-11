@@ -24,6 +24,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/roverdotcom/checkbridge/github"
 	"github.com/roverdotcom/checkbridge/parser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -32,9 +33,21 @@ import (
 type cobraRunner func(cmd *cobra.Command, args []string)
 type parserFunc func(io.Reader) parser.Parser
 
+var defaultPerms = map[string]string{
+	"checks": "write",
+}
+
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 	return func(cmd *cobra.Command, args []string) {
 		configureLogging(cmd)
+
+		auth := github.NewAuthProvider(os.Getenv)
+		token, err := auth.GetToken(defaultPerms)
+		if err != nil {
+			logrus.WithError(err).Error("Unable to get GitHub token")
+			os.Exit(4)
+		}
+		logrus.WithField("token", token).Debug("Got GitHub checks token")
 
 		logrus.Debugf("Parsing %s results", name)
 
