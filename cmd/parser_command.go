@@ -51,8 +51,10 @@ func getHeadSha() (string, error) {
 
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 	return func(cmd *cobra.Command, args []string) {
+		envProvider := os.Getenv
+
 		configureLogging(cmd)
-		repo, err := newRepo()
+		repo, err := newRepo(envProvider)
 		if err != nil {
 			logrus.WithError(err).Error("Unable to determine repository")
 			os.Exit(3)
@@ -64,7 +66,7 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 			os.Exit(3)
 		}
 
-		auth := github.NewAuthProvider(os.Getenv)
+		auth := github.NewAuthProvider(envProvider)
 		token, err := auth.GetToken(defaultPerms)
 		if err != nil {
 			logrus.WithError(err).Error("Unable to get GitHub token")
@@ -120,7 +122,6 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 			logrus.WithError(err).Error("Unable to create GitHub check")
 			os.Exit(5)
 		}
-		// TODO report the annotations to GitHub checks API
 
 		if exitZero, err := cmd.Flags().GetBool("exit-zero"); err != nil {
 			logrus.WithError(err).Error("Unable to read exit-zero flag")

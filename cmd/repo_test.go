@@ -23,45 +23,60 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"regexp"
-	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type repo struct {
-	owner string
-	repo  string
+type envStub struct {
+	key   string
+	value string
 }
 
-var githubRepoRegex = regexp.MustCompile("git@github.com:(.+)/(.+)")
-
-func newRepo(env func(string) string) (repo, error) {
-	// TODO allow configuring via command line options, fall back to reading from
-	// the repo checkout
-	ghRepo := env("GITHUB_REPOSITORY")
-	if ghRepo != "" {
-		repoParts := strings.Split(ghRepo, "/")
-		if len(repoParts) != 2 {
-			return repo{}, fmt.Errorf("malformed GITHUB_REPOSITORY: %s", ghRepo)
-		}
-		return repo{
-			owner: repoParts[0],
-			repo:  repoParts[1],
-		}, nil
+func (e envStub) get(key string) string {
+	if key == e.key {
+		return e.value
 	}
+	return ""
+}
 
-	bkRepo := env("BUILDKITE_REPO")
-	if bkRepo != "" {
-		match := githubRepoRegex.FindStringSubmatch(bkRepo)
-		if match != nil {
-			r := strings.TrimRight(match[2], ".git")
-			return repo{
-				owner: match[1],
-				repo:  r,
-			}, nil
-		}
+func TestNewRepo_FromGithub(t *testing.T) {
+	env := envStub{
+		"GITHUB_REPOSITORY",
+		"foo/bar",
 	}
+	repo, err := newRepo(env.get)
+	require.NoError(t, err)
+	assert.Equal(t, repo.owner, "foo")
+	assert.Equal(t, repo.repo, "bar")
+}
 
-	return repo{}, errors.New("missing repository configuration")
+func TestNewRepo_FromBuildKite(t *testing.T) {
+	env := envStub{
+		"BUILDKITE_REPO",
+		"git@github.com:org/with-dashes.git",
+	}
+	repo, err := newRepo(env.get)
+	require.NoError(t, err)
+	assert.Equal(t, repo.owner, "org")
+	assert.Equal(t, repo.repo, "with-dashes")
+}
+
+func TestNewRepo_MalformedBK(t *testing.T) {
+	env := envStub{
+		"BUILDKITE_REPO",
+		"ssh://github.com:org|with-dashes.git",
+	}
+	_, err := newRepo(env.get)
+	assert.Error(t, err)
+}
+
+func TestNewRepo_EmptyBK(t *testing.T) {
+	env := envStub{
+		"BUILDKITE_REPO",
+		"",
+	}
+	_, err := newRepo(env.get)
+	assert.Error(t, err)
 }
