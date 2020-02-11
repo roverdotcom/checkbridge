@@ -95,6 +95,7 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 			run.Conclusion = github.CheckConclusionSuccess
 			if err := api.CreateCheck(run); err != nil {
 				logrus.WithError(err).Error("Unable to create GitHub check")
+				os.Exit(5)
 			}
 			logrus.Debug("Created github check for successful run")
 			return
