@@ -28,6 +28,7 @@ func configureLogging(cmd *cobra.Command) {
 
 func init() {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().BoolP("exit-zero", "z", false, "exit zero even when tool reports issues")
 
 	rootCmd.AddCommand(golintCmd)
 }
