@@ -22,24 +22,25 @@ package cmd
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "checkbridge",
 	Short: "Checkbridge automates creating GitHub checks for CI",
 	Run: func(cmd *cobra.Command, args []string) {
-		configureLogging(cmd)
+		configureLogging(cmd.Flags())
 		if err := cmd.Usage(); err != nil {
 			logrus.WithError(err).Error("Error showing command usage")
 		}
 	},
 }
 
-func configureLogging(cmd *cobra.Command) {
+func configureLogging(flags *flag.FlagSet) {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
 	})
-	if isVerbose, err := cmd.Flags().GetBool("verbose"); err != nil {
+	if isVerbose, err := flags.GetBool("verbose"); err != nil {
 		logrus.WithError(err).Error("Unable to read verbosity")
 	} else if isVerbose {
 		logrus.SetLevel(logrus.DebugLevel)

@@ -49,7 +49,7 @@ func TestNewRepo_FromGithub(t *testing.T) {
 	repo, err := newRepo(env.get)
 	require.NoError(t, err)
 	assert.Equal(t, repo.owner, "foo")
-	assert.Equal(t, repo.repo, "bar")
+	assert.Equal(t, repo.name, "bar")
 }
 
 func TestNewRepo_FromBuildKite(t *testing.T) {
@@ -60,7 +60,7 @@ func TestNewRepo_FromBuildKite(t *testing.T) {
 	repo, err := newRepo(env.get)
 	require.NoError(t, err)
 	assert.Equal(t, repo.owner, "org")
-	assert.Equal(t, repo.repo, "with-dashes")
+	assert.Equal(t, repo.name, "with-dashes")
 }
 
 func TestNewRepo_MalformedBK(t *testing.T) {

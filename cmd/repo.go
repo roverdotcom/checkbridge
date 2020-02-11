@@ -31,7 +31,7 @@ import (
 
 type repo struct {
 	owner string
-	repo  string
+	name  string
 }
 
 var githubRepoRegex = regexp.MustCompile("git@github.com:(.+)/(.+)")
@@ -47,7 +47,7 @@ func newRepo(env func(string) string) (repo, error) {
 		}
 		return repo{
 			owner: repoParts[0],
-			repo:  repoParts[1],
+			name:  repoParts[1],
 		}, nil
 	}
 
@@ -58,7 +58,7 @@ func newRepo(env func(string) string) (repo, error) {
 			r := strings.TrimRight(match[2], ".git")
 			return repo{
 				owner: match[1],
-				repo:  r,
+				name:  r,
 			}, nil
 		}
 	}
