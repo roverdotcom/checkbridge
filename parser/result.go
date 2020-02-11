@@ -33,6 +33,7 @@ const (
 type Annotation struct {
 	Path    string `json:"path"`
 	Line    int    `json:"start_line"`
+	EndLine int    `json:"end_line"`
 	Column  int    `json:"column"`
 	Message string `json:"message"`
 	Level   Level  `json:"annotation_level"`

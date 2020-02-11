@@ -47,6 +47,7 @@ func extractGolint(match []string) (Annotation, error) {
 		Path:    match[1],
 		Level:   LevelWarning,
 		Line:    line,
+		EndLine: line,
 		Column:  column,
 		Message: match[4],
 	}, nil

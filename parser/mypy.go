@@ -43,6 +43,7 @@ func extractMypy(match []string) (Annotation, error) {
 		Path:    match[1],
 		Level:   LevelError,
 		Line:    line,
+		EndLine: line,
 		Message: match[4],
 	}, nil
 }
