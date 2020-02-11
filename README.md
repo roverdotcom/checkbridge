@@ -1,3 +1,4 @@
+![Test Status](https://github.com/roverdotcom/checkbridge/workflows/Test/badge.svg)
 ## Checkbridge
 
 Command-line utility to allow creating arbitrary [GitHub
