@@ -65,7 +65,6 @@ func (r regexer) Run() (Result, error) {
 		return Result{}, err
 	}
 
-	// TODO overall message
 	return Result{
 		Annotations: annotations,
 	}, nil
