@@ -34,6 +34,7 @@ import (
 
 const apiBase = "https://api.github.com"
 
+// Client is an interface to GitHub's API
 type Client interface {
 	CreateCheck(CheckRun) error
 }
