@@ -47,7 +47,7 @@ jobs:
         run: |
           git reset --hard HEAD
           addlicense -f LICENSE **/*.go
-          GIT_DIFF="$(git diff)"
+          GIT_DIFF="$(git diff --name-only)"
           if [[ -n "${GIT_DIFF}" ]]; then
             echo "License headers needed (run 'addlicense -f LICENSE **/*.go' and commit):"
             echo "${GIT_DIFF}"
