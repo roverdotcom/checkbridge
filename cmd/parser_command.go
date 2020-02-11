@@ -48,6 +48,7 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 
 		if len(results.Annotations) == 0 {
 			logrus.Infof("No violations reported from %s", name)
+			// TODO report the success to GitHub checks API
 			return
 		}
 

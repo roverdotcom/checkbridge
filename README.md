@@ -4,11 +4,11 @@ Command-line utility to allow creating arbitrary [GitHub
 checks](https://developer.github.com/v3/checks/) from other command-line
 utilities.
 
-## Usage
+## About
 
-If you're using GitHub actions, this project is probably overkill for your
-needs. Instead, take a look at [Lint Action], which is both more full-featured
-and doesn't require you to create a GitHub app and install it.
+If you're using GitHub actions, have a look at [Lint Action] instead, which
+is both more full-featured and doesn't require you to create a GitHub app and
+install it.
 
 The use case this was designed for is when you have an existing CI system that
 is **not** running via GitHub actions, and you'd like to use [GitHub checks].
@@ -17,8 +17,17 @@ GitHub checks allow you to post line-level annotations to files in Pull Requests
 and commits, which is especially useful for linters and other code analysis
 tools that you may want to run before code is merged.
 
+In order to use GitHub checks on commits and pull requests, you need to have
+a GitHub app provisioned and installed in your organization with `write` scope
+on the `checks` [permission].
+
+**TODO** show steps to create and install a GitHub app.
+
 [github checks]: https://developer.github.com/v3/checks/
 [lint action]: https://github.com/samuelmeuli/lint-action
+[permission]: https://developer.github.com/v3/apps/permissions/#permission-on-checks
+
+## Usage
 
 _Coming soon_
 
