@@ -63,7 +63,7 @@ func createCheck(handler *mockHandler) error {
 }
 
 func TestCreateCheck_OK(t *testing.T) {
-	handler := createHandler(200)
+	handler := createHandler(201)
 	err := createCheck(&handler)
 	assert.NoError(t, err)
 	assert.True(t, handler.called)

@@ -74,6 +74,7 @@ func (c client) CreateCheck(check CheckRun) error {
 	}
 
 	req.Header.Add("Accept", "application/vnd.github.antiope-preview+json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.token))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -86,7 +87,7 @@ func (c client) CreateCheck(check CheckRun) error {
 		return err
 	}
 	logrus.WithField("status", resp.Status).WithField("body", string(body)).Debug("Got check create response")
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != 201 {
 		return fmt.Errorf("error response from GitHub %d: %s", resp.StatusCode, string(body))
 	}
 	return nil
