@@ -27,9 +27,19 @@ _Coming soon_
 This section is intended for developers of this tool.
 
 You will need to have the [Go] toolchain installed. If it's correctly installed,
-you'll have the `go` binary available on your path.
+you'll have the `go` binary available on your path. If you don't have `go`
+available, install it via your system's package manager. For example, on macOS:
+
+```
+brew install go
+```
+
+This project is currently developed and tested using Go version 1.13, which is
+the latest public release. You'll need at least Go 1.11 to build as this project
+uses the [new module system].
 
 [go]: https://golang.org/
+[new module system]: https://blog.golang.org/using-go-modules
 
 ### Running tests
 
