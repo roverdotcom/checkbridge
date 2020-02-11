@@ -43,11 +43,13 @@ type client struct {
 	token string
 	owner string
 	repo  string
+	apiBase string
 }
 
 // NewClient creates a GitHub API client for creating checks
 func NewClient(token string, owner string, repo string) Client {
 	return client{
+		apiBase: apiBase,
 		token: token,
 		owner: owner,
 		repo:  repo,
@@ -56,7 +58,7 @@ func NewClient(token string, owner string, repo string) Client {
 
 func (c client) checkURL() string {
 	// TODO make URL configurable for tests
-	return fmt.Sprintf("%s/repos/%s/%s/check-runs", apiBase, c.owner, c.repo)
+	return fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiBase, c.owner, c.repo)
 }
 
 func (c client) CreateCheck(check CheckRun) error {
@@ -85,5 +87,8 @@ func (c client) CreateCheck(check CheckRun) error {
 		return err
 	}
 	logrus.WithField("status", resp.Status).WithField("body", string(body)).Debug("Got check create response")
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error response from GitHub %d: %s", resp.StatusCode, string(body))
+	}
 	return nil
 }

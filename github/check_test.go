@@ -21,3 +21,56 @@
 // SOFTWARE.
 
 package github
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+type mockHandler struct {
+	called bool
+	status int
+}
+
+func (m *mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	m.called = true
+	w.WriteHeader(m.status)
+}
+
+func createHandler(status int) mockHandler {
+	return mockHandler{
+		status: status,
+	}
+}
+
+func createCheck(handler *mockHandler) error {
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	client := client{
+		apiBase: server.URL,
+		token:   "fake-token",
+		repo:    "repo",
+		owner:   "owner",
+	}
+
+	return client.CreateCheck(CheckRun{
+		Name: "my-name",
+	})
+}
+
+func TestCreateCheck_OK(t *testing.T) {
+	handler := createHandler(200)
+	err := createCheck(&handler)
+	assert.NoError(t, err)
+	assert.True(t, handler.called)
+}
+
+func TestCreateCheck_NotFound(t *testing.T) {
+	handler := createHandler(404)
+	err := createCheck(&handler)
+	assert.Error(t, err)
+}
