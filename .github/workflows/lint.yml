@@ -11,6 +11,11 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
+      - name: Check out original branch
+        run: |
+          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+          git checkout $GITHUB_REF
+
       - name: Set up Go
         uses: actions/setup-go@v1
         with:

@@ -25,6 +25,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/roverdotcom/checkbridge/github"
 	"github.com/roverdotcom/checkbridge/parser"
@@ -45,7 +46,7 @@ func getHeadSha() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(out), nil
+	return strings.TrimSpace(string(out)), nil
 }
 
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
