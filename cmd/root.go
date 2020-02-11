@@ -31,6 +31,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("exit-zero", "z", false, "exit zero even when tool reports issues")
 
 	rootCmd.AddCommand(golintCmd)
+	rootCmd.AddCommand(mypyCmd)
 }
 
 // Execute is the entrypoint of the application
