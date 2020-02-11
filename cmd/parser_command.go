@@ -37,9 +37,26 @@ var defaultPerms = map[string]string{
 	"checks": "write",
 }
 
+func getHeadSha() (string, error) {
+	// TODO allow configuring via command line options, fall back to reading from
+	// the repo checkout
+	return os.Getenv("GITHUB_SHA"), nil
+}
+
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 	return func(cmd *cobra.Command, args []string) {
 		configureLogging(cmd)
+		repo, err := newRepo()
+		if err != nil {
+			logrus.WithError(err).Error("Unable to determine repository")
+			os.Exit(3)
+		}
+
+		head, err := getHeadSha()
+		if err != nil {
+			logrus.WithError(err).Error("Unable to read head SHA. Cannot continue.")
+			os.Exit(3)
+		}
 
 		auth := github.NewAuthProvider(os.Getenv)
 		token, err := auth.GetToken(defaultPerms)
@@ -49,23 +66,50 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 		}
 		logrus.WithField("token", token).Debug("Got GitHub checks token")
 
+		api := github.NewClient(token, repo.owner, repo.repo)
+
 		logrus.Debugf("Parsing %s results", name)
+		run := github.CheckRun{
+			Status:  github.CheckStatusCompleted,
+			Name:    name,
+			HeadSHA: head,
+		}
 
 		scanner := bufio.NewReader(os.Stdin)
 		gl := pfunc(scanner)
-		results, err := gl.Run()
+
+		result, err := gl.Run()
 		if err != nil {
 			logrus.WithError(err).Errorf("Error parsing %s results", name)
+			run.Conclusion = github.CheckConclusionFailure
+
+			if err := api.CreateCheck(run); err != nil {
+				logrus.WithError(err).Error("Unable to create GitHub check for parse failure")
+			}
+			logrus.Info("Created GitHub check as failure for parse error")
 			os.Exit(3)
 		}
 
-		if len(results.Annotations) == 0 {
+		if len(result.Annotations) == 0 {
 			logrus.Infof("No violations reported from %s", name)
-			// TODO report the success to GitHub checks API
+			run.Conclusion = github.CheckConclusionSuccess
+			if err := api.CreateCheck(run); err != nil {
+				logrus.WithError(err).Error("Unable to create GitHub check")
+			}
+			logrus.Debug("Created github check for successful run")
 			return
 		}
 
-		logrus.Infof("Got results: %+v", results)
+		logrus.Infof("Got %d annotations", len(result.Annotations))
+
+		// TODO allow neutral status
+		run.Conclusion = github.CheckConclusionFailure
+		run.Output = result
+
+		if err := api.CreateCheck(run); err != nil {
+			logrus.WithError(err).Error("Unable to create GitHub check")
+			os.Exit(5)
+		}
 		// TODO report the annotations to GitHub checks API
 
 		if exitZero, err := cmd.Flags().GetBool("exit-zero"); err != nil {
