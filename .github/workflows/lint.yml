@@ -45,6 +45,7 @@ jobs:
 
       - name: Check .go files have license headers
         run: |
+          git reset --hard HEAD
           addlicense -f LICENSE **/*.go
           GIT_DIFF="$(git diff)"
           if [[ -n "${GIT_DIFF}" ]]; then
