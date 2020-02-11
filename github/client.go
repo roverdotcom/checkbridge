@@ -61,6 +61,10 @@ func (c client) checkURL() string {
 }
 
 func (c client) CreateCheck(check CheckRun) error {
+	if len(check.Output.Annotations) > 50 {
+		logrus.Warnf("More than 50 annotations provided (%d), only sending first 50", len(check.Output.Annotations))
+		check.Output.Annotations = check.Output.Annotations[:50]
+	}
 	buf := bytes.Buffer{}
 	if err := json.NewEncoder(&buf).Encode(check); err != nil {
 		return err
