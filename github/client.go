@@ -40,9 +40,9 @@ type Client interface {
 }
 
 type client struct {
-	token string
-	owner string
-	repo  string
+	token   string
+	owner   string
+	repo    string
 	apiBase string
 }
 
@@ -50,9 +50,9 @@ type client struct {
 func NewClient(token string, owner string, repo string) Client {
 	return client{
 		apiBase: apiBase,
-		token: token,
-		owner: owner,
-		repo:  repo,
+		token:   token,
+		owner:   owner,
+		repo:    repo,
 	}
 }
 
