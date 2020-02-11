@@ -17,9 +17,9 @@ var testRegexp = regexp.MustCompile("(.*)")
 func TestRegexerRun_WithError(t *testing.T) {
 	called := false
 
-	extractWithError := func(matches []string) ([]parser.Annotation, error) {
+	extractWithError := func(matches []string) (parser.Annotation, error) {
 		called = true
-		return nil, errors.New("whoops")
+		return parser.Annotation{}, errors.New("whoops")
 	}
 
 	r := parser.NewRegexer(testRegexp, extractWithError, bytes.NewBufferString("test"))
@@ -32,14 +32,14 @@ func TestRegexerRun_WithError(t *testing.T) {
 
 func TestRegexerRun_SomeAnnotationsOK(t *testing.T) {
 	regex := regexp.MustCompile("^(.*):([0-9]+): (.*)")
-	extractor := func(matches []string) ([]parser.Annotation, error) {
+	extractor := func(matches []string) (parser.Annotation, error) {
 		line, err := strconv.Atoi(matches[2])
 		require.NoError(t, err)
 
-		return []parser.Annotation{{
+		return parser.Annotation{
 			Path: matches[1],
 			Line: line,
-		}}, nil
+		}, nil
 	}
 
 	r := parser.NewRegexer(regex, extractor, bytes.NewBufferString(`

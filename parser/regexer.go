@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type annotationExtracter func(matches []string) ([]Annotation, error)
+type annotationExtracter func(matches []string) (Annotation, error)
 
 type regexer struct {
 	regex     *regexp.Regexp
@@ -37,7 +37,7 @@ func (r regexer) Run() (Result, error) {
 		if a, err := r.extracter(match); err != nil {
 			logrus.WithError(err).Errorf("Unable to extract annotation from line: %s", line)
 		} else {
-			annotations = append(annotations, a...)
+			annotations = append(annotations, a)
 		}
 	}
 

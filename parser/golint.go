@@ -14,20 +14,21 @@ func NewGolinter(reader io.Reader) Parser {
 	return NewRegexer(golintRegex, extractGolint, reader)
 }
 
-func extractGolint(match []string) ([]Annotation, error) {
+func extractGolint(match []string) (Annotation, error) {
 	line, err := strconv.Atoi(match[2])
 	if err != nil {
-		return nil, fmt.Errorf("parse line %s: %w", match[2], err)
+		return Annotation{}, fmt.Errorf("parse line %s: %w", match[2], err)
 	}
 	column, err := strconv.Atoi(match[3])
 	if err != nil {
-		return nil, fmt.Errorf("parse column %s: %w", match[3], err)
+		return Annotation{}, fmt.Errorf("parse column %s: %w", match[3], err)
 	}
 
-	return []Annotation{{
-		Path:   match[1],
-		Level:  LevelWarning,
-		Line:   line,
-		Column: column,
-	}}, nil
+	return Annotation{
+		Path:    match[1],
+		Level:   LevelWarning,
+		Line:    line,
+		Column:  column,
+		Message: match[4],
+	}, nil
 }
