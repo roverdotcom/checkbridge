@@ -57,7 +57,6 @@ func NewClient(token string, owner string, repo string) Client {
 }
 
 func (c client) checkURL() string {
-	// TODO make URL configurable for tests
 	return fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiBase, c.owner, c.repo)
 }
 
