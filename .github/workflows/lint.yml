@@ -41,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.github_token }}
 
       - name: Install addlicense
-        run: go get github.com/google/addlicense
+        run: go get github.com/google/addlicense@v0.0.0-20200109101052-9fa18aaf59fb
 
       - name: Check .go files have license headers
         run: |
