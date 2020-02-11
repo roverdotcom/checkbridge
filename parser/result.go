@@ -33,6 +33,7 @@ const (
 type Annotation struct {
 	Path    string `json:"path"`
 	Line    int    `json:"start_line"`
+	EndLine int    `json:"end_line"`
 	Column  int    `json:"column"`
 	Message string `json:"message"`
 	Level   Level  `json:"annotation_level"`
@@ -40,7 +41,7 @@ type Annotation struct {
 
 // Result holds the output of a parser
 type Result struct {
-	Annotations []Annotation `json:"annotations"`
+	Annotations []Annotation `json:"annotations,omitempty"`
 	Title       string       `json:"title"`
 	Summary     string       `json:"summary"`
 }

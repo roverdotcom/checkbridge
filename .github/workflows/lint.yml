@@ -1,7 +1,7 @@
 name: Lint
 
 on:
-  pull_request:
+  push:
 
 jobs:
   lint:
@@ -36,7 +36,7 @@ jobs:
         run: go get golang.org/x/lint/golint
 
       - name: Run golint for internal testing
-        run: golint ./... | go run main.go golint
+        run: golint ./... | go run main.go golint --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
 
