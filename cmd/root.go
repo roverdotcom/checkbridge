@@ -10,7 +10,7 @@ var rootCmd = &cobra.Command{
 	Short: "Checkbridge automates creating GitHub checks for CI",
 	Run: func(cmd *cobra.Command, args []string) {
 		configureLogging(cmd)
-		logrus.Info("Hello, world")
+		cmd.Usage()
 	},
 }
 
