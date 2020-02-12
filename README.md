@@ -1,4 +1,5 @@
 ![Test Status](https://github.com/roverdotcom/checkbridge/workflows/Test/badge.svg)
+
 ## Checkbridge
 
 Command-line utility to allow creating arbitrary [GitHub
@@ -31,6 +32,36 @@ on the `checks` [permission].
 ## Usage
 
 _Coming soon_
+
+## Configuration
+
+All configuration can be passed as either command-line arguments or environment variables.
+
+Required flags:
+
+| Flag               | Short |     Environment Variable     |                                              Description |
+| ------------------ | ----- | :--------------------------: | -------------------------------------------------------: |
+| `--application-id` | `-a`  | `CHECKBRIDGE_APPLICATION_ID` |                                    GitHub application ID |
+| `--private-key`    | `-p`  |  `CHECKBRIDGE_PRIVATE_KEY`   | GitHub application private key (path to `.pem` or value) |
+
+### Optional flags
+
+The following flags can be configured, but are not required by default.
+
+| Flag                | Short |     Environment Variable      |                                Description |
+| ------------------- | ----- | :---------------------------: | -----------------------------------------: |
+| `--installation-id` | `-i`  | `CHECKBRIDGE_INSTALLATION_ID` |         GitHub application installation ID |
+| `--commit-sha`      | `-c`  |   `CHECKBRIDGE_COMMIT_SHA`    |   Commit SHA to report to checks API under |
+| `--github-repo`     | `-r`  |   `CHECKBRIDGE_GITHUB_REPO`   | Repository, e.g. 'roverdotcom/checkbridge' |
+
+### Defaults
+
+`--installation-id` will be looked up dynamically if not provided, by doing a `GET` to
+`/repos/:owner/:repo/installation`.
+
+`--commit-sha` will be read from `$GITHUB_SHA`, `$BUILDKITE_COMMIT`, or `git rev-parse HEAD`
+
+`--github-repo` will be read from `$GITHUB_REPO` or `$BUILDKITE_REPOSITORY` if present
 
 ## Development
 

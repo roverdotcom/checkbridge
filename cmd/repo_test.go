@@ -25,6 +25,7 @@ package cmd
 import (
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,10 +47,10 @@ func TestNewRepo_FromGithub(t *testing.T) {
 		"GITHUB_REPOSITORY",
 		"foo/bar",
 	}
-	repo, err := newRepo(env.get)
+	repo, err := newRepo(viper.GetViper(), env.get)
 	require.NoError(t, err)
-	assert.Equal(t, repo.owner, "foo")
-	assert.Equal(t, repo.name, "bar")
+	assert.Equal(t, "foo", repo.owner)
+	assert.Equal(t, "bar", repo.name)
 }
 
 func TestNewRepo_FromBuildKite(t *testing.T) {
@@ -57,10 +58,10 @@ func TestNewRepo_FromBuildKite(t *testing.T) {
 		"BUILDKITE_REPO",
 		"git@github.com:org/with-dashes.git",
 	}
-	repo, err := newRepo(env.get)
+	repo, err := newRepo(viper.GetViper(), env.get)
 	require.NoError(t, err)
-	assert.Equal(t, repo.owner, "org")
-	assert.Equal(t, repo.name, "with-dashes")
+	assert.Equal(t, "org", repo.owner)
+	assert.Equal(t, "with-dashes", repo.name)
 }
 
 func TestNewRepo_MalformedBK(t *testing.T) {
@@ -68,7 +69,7 @@ func TestNewRepo_MalformedBK(t *testing.T) {
 		"BUILDKITE_REPO",
 		"ssh://github.com:org|with-dashes.git",
 	}
-	_, err := newRepo(env.get)
+	_, err := newRepo(viper.GetViper(), env.get)
 	assert.Error(t, err)
 }
 
@@ -77,6 +78,47 @@ func TestNewRepo_EmptyBK(t *testing.T) {
 		"BUILDKITE_REPO",
 		"",
 	}
-	_, err := newRepo(env.get)
+	_, err := newRepo(viper.GetViper(), env.get)
 	assert.Error(t, err)
+}
+
+func TestNewRepo_FromViper(t *testing.T) {
+	env := envStub{}
+	vip := viper.New()
+	vip.Set("github_repo", "foo/bar")
+
+	repo, err := newRepo(vip, env.get)
+	require.NoError(t, err)
+	assert.Equal(t, "foo", repo.owner)
+	assert.Equal(t, "bar", repo.name)
+}
+
+func TestGetHeadSha_FromViper(t *testing.T) {
+	env := envStub{}
+	vip := viper.New()
+	vip.Set("commit_sha", "my-sha")
+
+	sha, err := getHeadSha(vip, env.get)
+	require.NoError(t, err)
+	assert.Equal(t, "my-sha", sha)
+}
+
+func TestGetHeadSha_FromBK(t *testing.T) {
+	env := envStub{
+		"BUILDKITE_COMMIT",
+		"my-bk-head",
+	}
+	sha, err := getHeadSha(viper.New(), env.get)
+	require.NoError(t, err)
+	assert.Equal(t, "my-bk-head", sha)
+}
+
+func TestGetHeadSha_FromGitHub(t *testing.T) {
+	env := envStub{
+		"GITHUB_SHA",
+		"my-gh-head",
+	}
+	sha, err := getHeadSha(viper.New(), env.get)
+	require.NoError(t, err)
+	assert.Equal(t, "my-gh-head", sha)
 }

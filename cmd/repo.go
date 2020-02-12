@@ -25,8 +25,12 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type repo struct {
@@ -36,23 +40,33 @@ type repo struct {
 
 var githubRepoRegex = regexp.MustCompile("git@github.com:(.+)/(.+)")
 
-func newRepo(env func(string) string) (repo, error) {
-	// TODO allow configuring via command line options, fall back to reading from
-	// the repo checkout
+func repoFromPath(path string) (repo, error) {
+	repoParts := strings.Split(path, "/")
+	if len(repoParts) != 2 {
+		return repo{}, fmt.Errorf("malformed GITHUB_REPOSITORY: %s", path)
+	}
+	return repo{
+		owner: repoParts[0],
+		name:  repoParts[1],
+	}, nil
+}
+
+func newRepo(v *viper.Viper, env func(string) string) (repo, error) {
+	passedRepo := v.GetString("github_repo")
+	if passedRepo != "" {
+		logrus.WithField("repo", passedRepo).Debug("Using repo from configuration")
+		return repoFromPath(passedRepo)
+	}
+
 	ghRepo := env("GITHUB_REPOSITORY")
 	if ghRepo != "" {
-		repoParts := strings.Split(ghRepo, "/")
-		if len(repoParts) != 2 {
-			return repo{}, fmt.Errorf("malformed GITHUB_REPOSITORY: %s", ghRepo)
-		}
-		return repo{
-			owner: repoParts[0],
-			name:  repoParts[1],
-		}, nil
+		logrus.WithField("repo", ghRepo).Debug("Using GITHUB_REPOSITORY environment value")
+		return repoFromPath(ghRepo)
 	}
 
 	bkRepo := env("BUILDKITE_REPO")
 	if bkRepo != "" {
+		logrus.WithField("repo", bkRepo).Debug("Using BUILDKITE_REPO environment value")
 		match := githubRepoRegex.FindStringSubmatch(bkRepo)
 		if match != nil {
 			r := strings.TrimRight(match[2], ".git")
@@ -64,4 +78,28 @@ func newRepo(env func(string) string) (repo, error) {
 	}
 
 	return repo{}, errors.New("missing repository configuration")
+}
+
+func getHeadSha(vip *viper.Viper, env func(string) string) (string, error) {
+	passedSha := vip.GetString("commit_sha")
+	if passedSha != "" {
+		logrus.WithField("sha", passedSha).Debug("Using configured SHA")
+		return passedSha, nil
+	}
+
+	if bkSha := env("BUILDKITE_COMMIT"); bkSha != "" {
+		logrus.WithField("sha", bkSha).Debug("Using $BUILDKITE_COMMIT sha")
+		return bkSha, nil
+	}
+
+	if ghSha := env("GITHUB_SHA"); ghSha != "" {
+		logrus.WithField("sha", ghSha).Debug("Using $GITHUB_SHA sha")
+		return ghSha, nil
+	}
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }

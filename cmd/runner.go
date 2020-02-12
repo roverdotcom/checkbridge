@@ -30,6 +30,7 @@ import (
 	"github.com/roverdotcom/checkbridge/parser"
 	"github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 type runner struct {
@@ -40,15 +41,16 @@ type runner struct {
 }
 
 func (r runner) run() {
+	vip := viper.GetViper()
 	configureLogging(r.flags)
 
-	repo, err := newRepo(r.env)
+	repo, err := newRepo(vip, r.env)
 	if err != nil {
 		logrus.WithError(err).Error("Unable to determine repository")
 		os.Exit(3)
 	}
 
-	head, err := getHeadSha()
+	head, err := getHeadSha(vip, r.env)
 	if err != nil {
 		logrus.WithError(err).Error("Unable to read head SHA. Cannot continue.")
 		os.Exit(3)

@@ -22,8 +22,6 @@ package cmd
 import (
 	"io"
 	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/roverdotcom/checkbridge/parser"
 	"github.com/spf13/cobra"
@@ -34,15 +32,6 @@ type parserFunc func(io.Reader) parser.Parser
 
 var defaultPerms = map[string]string{
 	"checks": "write",
-}
-
-func getHeadSha() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(out)), nil
 }
 
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
