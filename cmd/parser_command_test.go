@@ -44,7 +44,7 @@ func (s *stubClient) CreateCheck(check github.CheckRun) error {
 }
 
 func TestAPIClient_NoToken(t *testing.T) {
-	r := runner{
+	r := environment{
 		env: func(string) string { return "" },
 	}
 
@@ -53,7 +53,7 @@ func TestAPIClient_NoToken(t *testing.T) {
 }
 
 func TestAPIClient_ValidToken(t *testing.T) {
-	r := runner{
+	r := environment{
 		env: func(string) string { return "token" },
 	}
 
@@ -64,8 +64,8 @@ func TestAPIClient_ValidToken(t *testing.T) {
 func TestReportResults_NoViolations(t *testing.T) {
 	api := &stubClient{}
 	result := parser.Result{}
-	r := runner{}
-	code := r.reportResults(github.CheckRun{}, result, api)
+	p := parseRunner{}
+	code := p.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, code, 0)
 	assert.Equal(t, github.CheckConclusionSuccess, api.reportedCheck.Conclusion)
@@ -78,8 +78,9 @@ func TestReportResults_WithViolations(t *testing.T) {
 			Path: "main.go",
 		}},
 	}
-	r := runner{vip: viper.GetViper()}
-	code := r.reportResults(github.CheckRun{}, result, api)
+	e := environment{vip: viper.GetViper()}
+	p := parseRunner{environment: e}
+	code := p.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, code, 1)
 	assert.Equal(t, github.CheckConclusionFailure, api.reportedCheck.Conclusion)
@@ -92,8 +93,10 @@ func TestReportResults_WithViolations_ExitZero(t *testing.T) {
 	result := parser.Result{
 		Annotations: []parser.Annotation{{}},
 	}
-	r := runner{vip: vip}
-	code := r.reportResults(github.CheckRun{}, result, api)
+	p := parseRunner{
+		environment: environment{vip: vip},
+	}
+	code := p.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, code, 0)
 	assert.Equal(t, github.CheckConclusionFailure, api.reportedCheck.Conclusion)
@@ -106,8 +109,10 @@ func TestReportResults_WithViolations_AnnotateOnly(t *testing.T) {
 	result := parser.Result{
 		Annotations: []parser.Annotation{{}},
 	}
-	r := runner{vip: vip}
-	r.reportResults(github.CheckRun{}, result, api)
+	p := parseRunner{
+		environment: environment{vip: vip},
+	}
+	p.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, github.CheckConclusionNeutral, api.reportedCheck.Conclusion)
 }
@@ -118,8 +123,10 @@ func TestReportResults_GitHubError(t *testing.T) {
 		err: &err,
 	}
 	result := parser.Result{}
-	r := runner{}
-	code := r.reportResults(github.CheckRun{}, result, api)
+	p := parseRunner{
+		environment: environment{},
+	}
+	code := p.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, code, 5)
 }
