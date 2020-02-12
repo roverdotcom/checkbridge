@@ -36,10 +36,13 @@ _Coming soon_
 
 ## Configuration
 
-All configuration can be passed as either command-line arguments or environment variables. All flags have shorthand values, run `checkbridge --help` to see them:
+Most configuration options can be passed as either command-line arguments or
+environment variables. All flags have shorthand values, run `checkbridge --help`
+to see them:
 
 ```
 Flags:
+  -o, --annotate-only         only leave annotations, never mark check as failed
   -a, --application-id int    GitHub application ID (numeric)
   -c, --commit-sha string     commit SHA to report status checks for
   -z, --exit-zero             exit zero even when tool reports issues

@@ -90,15 +90,26 @@ func TestReportResults_WithViolations_ExitZero(t *testing.T) {
 	vip.Set("exit_zero", true)
 	api := &stubClient{}
 	result := parser.Result{
-		Annotations: []parser.Annotation{{
-			Path: "main.go",
-		}},
+		Annotations: []parser.Annotation{{}},
 	}
 	r := runner{vip: vip}
 	code := r.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, code, 0)
 	assert.Equal(t, github.CheckConclusionFailure, api.reportedCheck.Conclusion)
+}
+
+func TestReportResults_WithViolations_AnnotateOnly(t *testing.T) {
+	vip := viper.New()
+	vip.Set("annotate_only", true)
+	api := &stubClient{}
+	result := parser.Result{
+		Annotations: []parser.Annotation{{}},
+	}
+	r := runner{vip: vip}
+	r.reportResults(github.CheckRun{}, result, api)
+
+	assert.Equal(t, github.CheckConclusionNeutral, api.reportedCheck.Conclusion)
 }
 
 func TestReportResults_GitHubError(t *testing.T) {
