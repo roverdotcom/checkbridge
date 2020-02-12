@@ -30,7 +30,7 @@ on the `checks` [permission].
 ## Usage
 
 `checkbridge` requires GitHub credentials to report checks. Read through the [configuration]
-and [authentication] sections to see how. Once configured, you can create checks by
+and [authentication] sections to see get started. Once configured, you can create checks by
 piping your desired tool into a `checkbridge` subcommand. For example:
 
 ```bash
