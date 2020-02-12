@@ -37,7 +37,7 @@ const jwtExpiry = 60 * time.Second
 
 // AuthProvider handles getting a GitHub token for the given permissions
 type AuthProvider interface {
-	GetToken(perms map[string]string) (string, error)
+	GetToken(r Repo, perms map[string]string) (string, error)
 }
 
 // ConfigProvider is an interface over *viper.Viper
@@ -97,14 +97,10 @@ func (g githubAuth) makeJWT() (string, error) {
 		"exp": exp.Unix(),
 	})
 
-	tokenString, err := token.SignedString(rsaKey)
-	if err != nil {
-		return "", fmt.Errorf("error signing JWT: %w", err)
-	}
-	return tokenString, nil
+	return token.SignedString(rsaKey)
 }
 
-func (g githubAuth) GetToken(perms map[string]string) (string, error) {
+func (g githubAuth) GetToken(r Repo, perms map[string]string) (string, error) {
 	if token := g.config.GetString("github_token"); token != "" {
 		logrus.Debug("Using explicit GitHub token, skipping JWT exchange")
 		return token, nil

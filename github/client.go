@@ -45,12 +45,12 @@ type client struct {
 }
 
 // NewClient creates a GitHub API client for creating checks
-func NewClient(token string, owner string, repo string) Client {
+func NewClient(token string, repo Repo) Client {
 	return client{
 		apiBase: apiBase,
 		token:   token,
-		owner:   owner,
-		repo:    repo,
+		owner:   repo.Owner(),
+		repo:    repo.Name(),
 	}
 }
 

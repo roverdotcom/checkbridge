@@ -29,13 +29,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type dummyRepo struct {
+	owner, name string
+}
+
+func (d dummyRepo) Owner() string { return d.owner }
+func (d dummyRepo) Name() string  { return d.name }
+
 func TestGithubAuth_GetTokenFromEnv(t *testing.T) {
 	vip := viper.New()
 	mytoken := "mytoken"
 	vip.Set("github_token", mytoken)
 	auth := github.NewAuthProvider(vip)
 
-	token, err := auth.GetToken(map[string]string{})
+	token, err := auth.GetToken(dummyRepo{}, map[string]string{})
 	require.NoError(t, err, "error getting token")
 	assert.Equal(t, mytoken, token)
 }
@@ -43,6 +50,6 @@ func TestGithubAuth_GetTokenFromEnv(t *testing.T) {
 func TestGithubAuth_GetTokenNoEnv(t *testing.T) {
 	auth := github.NewAuthProvider(viper.New())
 
-	_, err := auth.GetToken(nil)
+	_, err := auth.GetToken(dummyRepo{}, nil)
 	assert.Error(t, err)
 }

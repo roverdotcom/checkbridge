@@ -31,17 +31,17 @@ type environment struct {
 	env func(string) string
 }
 
-func (e environment) githubToken() (string, error) {
+func (e environment) githubToken(repo repo) (string, error) {
 	auth := github.NewAuthProvider(e.vip)
-	return auth.GetToken(defaultPerms)
+	return auth.GetToken(repo, defaultPerms)
 }
 
 func (e environment) apiClient(repo repo) (github.Client, error) {
-	token, err := e.githubToken()
+	token, err := e.githubToken(repo)
 	if err != nil {
 		return nil, err
 	}
 	logrus.WithField("token", token).Debug("Got GitHub checks token")
 
-	return github.NewClient(token, repo.owner, repo.name), nil
+	return github.NewClient(token, repo), nil
 }

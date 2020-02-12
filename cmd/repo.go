@@ -36,6 +36,14 @@ type repo struct {
 	name  string
 }
 
+func (r repo) Name() string {
+	return r.name
+}
+
+func (r repo) Owner() string {
+	return r.owner
+}
+
 var githubRepoRegex = regexp.MustCompile("git@github.com:(.+)/(.+)")
 
 func repoFromPath(path string) (repo, error) {

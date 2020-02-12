@@ -17,41 +17,10 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package cmd
+package github
 
-import (
-	"os"
-
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
-
-var authCheckCommand = &cobra.Command{
-	Use:   "check-auth",
-	Short: "Verify checkbridge is configured properly for GitHub auth",
-	Run: func(cmd *cobra.Command, args []string) {
-		vip := viper.GetViper()
-		configureLogging(vip)
-		if err := runAuthCheck(vip, os.Getenv); err != nil {
-			logrus.WithError(err).Error("Auth check failed")
-		}
-	},
-}
-
-func runAuthCheck(vip *viper.Viper, env func(string) string) error {
-	e := environment{
-		vip: vip,
-		env: env,
-	}
-	repo, err := newRepo(vip, os.Getenv)
-	if err != nil {
-		return err
-	}
-	token, err := e.githubToken(repo)
-	if err != nil {
-		return err
-	}
-	logrus.WithField("token", token).Info("Got auth token")
-	return nil
+// Repo is a general interface for a GitHub repository
+type Repo interface {
+	Name() string
+	Owner() string
 }
