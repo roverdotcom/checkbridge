@@ -94,7 +94,7 @@ func (p parseRunner) run() {
 	}
 }
 
-func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, api github.Client) int {
+func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, api github.CheckClient) int {
 	if len(result.Annotations) == 0 {
 		logrus.Infof("No violations reported from %s", p.name)
 		run.Conclusion = github.CheckConclusionSuccess

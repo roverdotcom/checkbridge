@@ -36,12 +36,12 @@ func (e environment) githubToken(repo repo) (string, error) {
 	return auth.GetToken(repo, defaultPerms)
 }
 
-func (e environment) apiClient(repo repo) (github.Client, error) {
+func (e environment) apiClient(repo repo) (github.CheckClient, error) {
 	token, err := e.githubToken(repo)
 	if err != nil {
 		return nil, err
 	}
 	logrus.WithField("token", token).Debug("Got GitHub checks token")
 
-	return github.NewClient(token, repo), nil
+	return github.NewCheckClient(token, repo), nil
 }

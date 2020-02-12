@@ -48,11 +48,13 @@ func createCheck(handler *mockHandler) error {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	client := client{
-		apiBase: server.URL,
-		token:   "fake-token",
-		repo:    "repo",
-		owner:   "owner",
+	client := checkClient{
+		client: client{
+			apiBase:   server.URL,
+			authToken: "fake-token",
+		},
+		repo:  "repo",
+		owner: "owner",
 	}
 
 	return client.CreateCheck(CheckRun{
