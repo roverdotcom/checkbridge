@@ -28,7 +28,7 @@ import (
 
 	"github.com/roverdotcom/checkbridge/github"
 	"github.com/roverdotcom/checkbridge/parser"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -74,15 +74,13 @@ func TestReportResults_NoViolations(t *testing.T) {
 }
 
 func TestReportResults_WithViolations(t *testing.T) {
-	flags := &flag.FlagSet{}
-	flags.BoolP("exit-zero", "z", false, "usage")
 	api := &stubClient{}
 	result := parser.Result{
 		Annotations: []parser.Annotation{{
 			Path: "main.go",
 		}},
 	}
-	r := runner{flags: flags}
+	r := runner{vip: viper.GetViper()}
 	code := r.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, code, 1)
@@ -90,15 +88,15 @@ func TestReportResults_WithViolations(t *testing.T) {
 }
 
 func TestReportResults_WithViolations_ExitZero(t *testing.T) {
-	flags := &flag.FlagSet{}
-	flags.BoolP("exit-zero", "z", true, "usage")
+	vip := viper.New()
+	vip.Set("exit_zero", true)
 	api := &stubClient{}
 	result := parser.Result{
 		Annotations: []parser.Annotation{{
 			Path: "main.go",
 		}},
 	}
-	r := runner{flags: flags}
+	r := runner{vip: vip}
 	code := r.reportResults(github.CheckRun{}, result, api)
 
 	assert.Equal(t, code, 0)
