@@ -23,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 var rootCmd = &cobra.Command{
@@ -49,11 +50,30 @@ func configureLogging(flags *flag.FlagSet) {
 }
 
 func init() {
+	cobra.OnInitialize(initConfig)
+	viper.SetEnvPrefix("checkbridge")
+
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolP("exit-zero", "z", false, "exit zero even when tool reports issues")
 
+	rootCmd.PersistentFlags().StringP("github-repo", "r", "", "GitHub repository (e.g. 'roverdotcom/checkbridge')")
+	rootCmd.PersistentFlags().IntP("application-id", "a", 0, "GitHub application ID (numeric)")
+	rootCmd.PersistentFlags().IntP("installation-id", "i", 0, "GitHub installation ID (numeric)")
+	rootCmd.PersistentFlags().StringP("private-key", "p", "", "GitHub application private key path or value")
+	rootCmd.PersistentFlags().StringP("commit-sha", "c", "", "commit SHA to report status checks for")
+
+	viper.BindPFlag("application_id", rootCmd.PersistentFlags().Lookup("application-id"))
+	viper.BindPFlag("installation_id", rootCmd.PersistentFlags().Lookup("installation-id"))
+	viper.BindPFlag("private_key", rootCmd.PersistentFlags().Lookup("private-key"))
+	viper.BindPFlag("github_repo", rootCmd.PersistentFlags().Lookup("github-repo"))
+	viper.BindPFlag("commit_sha", rootCmd.PersistentFlags().Lookup("commit-sha"))
+
 	rootCmd.AddCommand(golintCmd)
 	rootCmd.AddCommand(mypyCmd)
+}
+
+func initConfig() {
+	viper.AutomaticEnv()
 }
 
 // Execute is the entrypoint of the application
