@@ -31,6 +31,8 @@ type CheckConclusion string
 const (
 	// CheckStatusCompleted represents a completed check
 	CheckStatusCompleted CheckStatus = "completed"
+	// CheckStatusInProgress represents a currently running check
+	CheckStatusInProgress CheckStatus = "in_progress"
 
 	// CheckConclusionSuccess means the check was successful
 	CheckConclusionSuccess CheckConclusion = "success"

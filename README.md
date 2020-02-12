@@ -55,6 +55,7 @@ Flags:
   -r, --github-repo string    GitHub repository (e.g. 'roverdotcom/checkbridge')
   -h, --help                  help for checkbridge
   -i, --installation-id int   GitHub installation ID (numeric)
+  -m, --mark-in-progress      mark check as in progress before parsing
   -p, --private-key string    GitHub application private key path or value
   -v, --verbose               verbose output
 ```
