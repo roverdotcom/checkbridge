@@ -18,29 +18,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package github_test
+package github
 
 import (
 	"testing"
 
-	"github.com/roverdotcom/checkbridge/github"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type dummyRepo struct {
-	owner, name string
-}
-
-func (d dummyRepo) Owner() string { return d.owner }
-func (d dummyRepo) Name() string  { return d.name }
-
 func TestGithubAuth_GetTokenFromEnv(t *testing.T) {
 	vip := viper.New()
 	mytoken := "mytoken"
 	vip.Set("github_token", mytoken)
-	auth := github.NewAuthProvider(vip)
+	auth := NewAuthProvider(vip)
 
 	token, err := auth.GetToken(dummyRepo{}, map[string]string{})
 	require.NoError(t, err, "error getting token")
@@ -48,8 +41,61 @@ func TestGithubAuth_GetTokenFromEnv(t *testing.T) {
 }
 
 func TestGithubAuth_GetTokenNoEnv(t *testing.T) {
-	auth := github.NewAuthProvider(viper.New())
+	auth := NewAuthProvider(viper.New())
 
 	_, err := auth.GetToken(dummyRepo{}, nil)
 	assert.Error(t, err)
+}
+
+func TestMakeJWT_NoAppId(t *testing.T) {
+	conf := viper.New()
+	gh := githubAuth{
+		config: conf,
+	}
+
+	_, err := gh.makeJWT()
+	assert.Error(t, err)
+}
+
+func TestMakeJWT_NoPrivateKey(t *testing.T) {
+	conf := viper.New()
+	conf.Set("application_id", "42")
+	gh := githubAuth{
+		config: conf,
+	}
+
+	_, err := gh.makeJWT()
+	assert.Error(t, err)
+}
+func TestMakeJWT_InvalidPrivateKey(t *testing.T) {
+	conf := viper.New()
+	conf.Set("application_id", "42")
+	conf.Set("private_key", "bad/path/to/pem")
+	gh := githubAuth{
+		config: conf,
+	}
+
+	_, err := gh.makeJWT()
+	assert.Error(t, err)
+}
+
+const testPrivateKey = "testdata/key.pem"
+
+func TestMakeJWT_OK(t *testing.T) {
+	appID := "42"
+	conf := viper.New()
+	conf.Set("application_id", appID)
+	conf.Set("private_key", testPrivateKey)
+	gh := githubAuth{
+		config: conf,
+	}
+
+	jwtVal, err := gh.makeJWT()
+	require.NoError(t, err)
+	assert.NotEmpty(t, jwtVal)
+
+	parser := &jwt.Parser{}
+	claims := jwt.MapClaims{}
+	_, _, err = parser.ParseUnverified(jwtVal, claims)
+	require.NoError(t, err)
 }
