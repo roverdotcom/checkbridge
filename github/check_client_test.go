@@ -36,6 +36,7 @@ type mockHandler struct {
 func (m *mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.called = true
 	w.WriteHeader(m.status)
+	w.Write([]byte(`{}`))
 }
 
 func createHandler(status int) mockHandler {

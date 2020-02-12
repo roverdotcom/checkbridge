@@ -21,7 +21,6 @@ package github
 
 import (
 	"fmt"
-	"io/ioutil"
 
 	"github.com/sirupsen/logrus"
 )
@@ -59,19 +58,18 @@ func (c checkClient) CreateCheck(check CheckRun) error {
 		check.Output.Annotations = check.Output.Annotations[:50]
 	}
 
-	resp, err := c.postJSON(c.checkURL(), check)
+	headers := map[string]string{
+		"Accept": "application/vnd.github.antiope-preview+json",
+	}
+	postResponse := map[string]interface{}{}
+	resp, err := c.postJSON(c.checkURL(), check, headers, &postResponse)
 	if err != nil {
 		return err
 	}
 
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	logrus.WithField("status", resp.Status).WithField("body", string(body)).Debug("Got check create response")
+	logrus.WithField("status", resp.Status).WithField("body", postResponse).Debug("Got check create response")
 	if resp.StatusCode != 201 {
-		return fmt.Errorf("error response from GitHub %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf("error response from GitHub %d: %s", resp.StatusCode, postResponse)
 	}
 	return nil
 }

@@ -113,10 +113,21 @@ func (g githubAuth) GetToken(r Repo, perms map[string]string) (string, error) {
 	logrus.WithField("jwt", appJWT).Debug("Got JWT")
 
 	installationID := g.config.GetString("installation_id")
-	if installationID == "" {
-		logrus.Debug("No installation ID provided, asking GitHub")
-		// TODO
+	tc := tokenClient{
+		client: client{
+			authToken: appJWT,
+			apiBase:   apiBase,
+		},
 	}
 
-	return "", errors.New("No token provided or configured")
+	if installationID == "0" {
+		logrus.Debug("No installation ID provided, asking GitHub")
+		installationID, err = tc.installationID(r)
+		if err != nil {
+			return "", err
+		}
+		logrus.WithField("installationID", installationID).Debug("Got installation ID response from GitHub")
+	}
+
+	return tc.getAccesssToken(installationID, perms)
 }

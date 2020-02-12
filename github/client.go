@@ -36,25 +36,60 @@ type client struct {
 	apiBase   string
 }
 
-func (c client) addHeaders(req *http.Request) {
-	req.Header.Add("Accept", "application/vnd.github.antiope-preview+json")
+func (c client) addAuthHeader(req *http.Request) {
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
 }
 
-func (c client) postJSON(url string, body interface{}) (*http.Response, error) {
+func (c client) decodeResponse(req *http.Request, result interface{}) (*http.Response, error) {
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	decoder := json.NewDecoder(resp.Body)
+	if err := decoder.Decode(result); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (c client) getJSON(url string, headers map[string]string, result interface{}) (*http.Response, error) {
+	fullURL := fmt.Sprintf("%s/%s", c.apiBase, url)
+	req, err := http.NewRequest(http.MethodGet, fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.addAuthHeader(req)
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
+	return c.decodeResponse(req, result)
+}
+
+func (c client) postJSON(url string, body interface{}, headers map[string]string, result interface{}) (*http.Response, error) {
 	buf := bytes.Buffer{}
 	if err := json.NewEncoder(&buf).Encode(body); err != nil {
 		return nil, err
 	}
 	fullURL := fmt.Sprintf("%s/%s", c.apiBase, url)
-	logrus.WithField("url", fullURL).WithField("body", buf.String()).Debug("Making HTTP request to GitHub check-runs API")
+	logrus.WithField("url", fullURL).WithField("body", buf.String()).Debug("Making HTTP request to GitHub API")
 
 	req, err := http.NewRequest(http.MethodPost, fullURL, &buf)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
+	c.addAuthHeader(req)
 
-	client := &http.Client{}
-	return client.Do(req)
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
+	return c.decodeResponse(req, result)
 }
