@@ -21,10 +21,19 @@
 package github
 
 import (
+	"crypto/rsa"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"strings"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 )
+
+const rsaHeader = `-----BEGIN RSA PRIVATE KEY-----`
+const jwtExpiry = 60 * time.Second
 
 // AuthProvider handles getting a GitHub token for the given permissions
 type AuthProvider interface {
@@ -47,10 +56,71 @@ func NewAuthProvider(c ConfigProvider) AuthProvider {
 	}
 }
 
+func (g githubAuth) readPrivateKey(pathOrKey string) (*rsa.PrivateKey, error) {
+	var bytePayload []byte
+	if strings.HasPrefix(pathOrKey, rsaHeader) {
+		bytePayload = []byte(pathOrKey)
+	} else {
+		logrus.WithField("path", pathOrKey).Debug("Reading private key from file")
+
+		data, err := ioutil.ReadFile(pathOrKey)
+		if err != nil {
+			return nil, err
+		}
+		bytePayload = data
+	}
+	return jwt.ParseRSAPrivateKeyFromPEM(bytePayload)
+}
+
+func (g githubAuth) makeJWT() (string, error) {
+	applicationID := g.config.GetString("application_id")
+	if applicationID == "0" {
+		return "", errors.New("no application ID provided")
+	}
+
+	privateKey := g.config.GetString("private_key")
+	if privateKey == "" {
+		return "", errors.New("no private key provided")
+	}
+
+	rsaKey, err := g.readPrivateKey(privateKey)
+	if err != nil {
+		return "", fmt.Errorf("error reading private key: %w", err)
+	}
+
+	now := time.Now()
+	exp := now.Add(jwtExpiry)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": applicationID,
+		"iat": now.Unix(),
+		"exp": exp.Unix(),
+	})
+
+	tokenString, err := token.SignedString(rsaKey)
+	if err != nil {
+		return "", fmt.Errorf("error signing JWT: %w", err)
+	}
+	return tokenString, nil
+}
+
 func (g githubAuth) GetToken(perms map[string]string) (string, error) {
 	if token := g.config.GetString("github_token"); token != "" {
 		logrus.Debug("Using explicit GitHub token, skipping JWT exchange")
 		return token, nil
 	}
+
+	appJWT, err := g.makeJWT()
+	if err != nil {
+		return "", err
+	}
+	logrus.WithField("jwt", appJWT).Debug("Got JWT")
+
+	installationID := g.config.GetString("installation_id")
+	if installationID == "" {
+		logrus.Debug("No installation ID provided, asking GitHub")
+		// TODO
+	}
+
 	return "", errors.New("No token provided or configured")
 }
