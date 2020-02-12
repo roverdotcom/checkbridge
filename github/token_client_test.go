@@ -18,3 +18,85 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 package github
+
+import (
+	"net/http"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+type dummyRepo struct {
+	owner, name string
+}
+
+func (d dummyRepo) Owner() string { return d.owner }
+func (d dummyRepo) Name() string  { return d.name }
+
+func TestInstallationID_NoData(t *testing.T) {
+	handle := func(w http.ResponseWriter) {
+		w.WriteHeader(201)
+	}
+	withResponse(t, handle, func(c client) {
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		_, err := tc.installationID(dummyRepo{})
+		assert.Error(t, err)
+	})
+}
+
+func TestInstallationID_Empty(t *testing.T) {
+	handle := func(w http.ResponseWriter) {
+		w.WriteHeader(201)
+		w.Write([]byte(`{}`))
+
+	}
+	withResponse(t, handle, func(c client) {
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		_, err := tc.installationID(dummyRepo{})
+		assert.Error(t, err)
+	})
+}
+
+func TestInstallationID_Valid(t *testing.T) {
+	handle := func(w http.ResponseWriter) {
+		w.WriteHeader(201)
+		w.Write([]byte(`{"id": 12345}`))
+	}
+	withResponse(t, handle, func(c client) {
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		id, err := tc.installationID(dummyRepo{})
+		require.NoError(t, err)
+		assert.Equal(t, "12345", id)
+	})
+}
+
+func TestGetAccessToken_OK(t *testing.T) {
+	token := "v1.1234"
+	handle := func(w http.ResponseWriter) {
+		w.WriteHeader(201)
+		w.Write([]byte(`{"token": "` + token + `"}`))
+	}
+	withResponse(t, handle, func(c client) {
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		token, err := tc.getAccesssToken("fake-installation-id", nil)
+		require.NoError(t, err)
+		assert.Equal(t, token, token)
+	})
+}
