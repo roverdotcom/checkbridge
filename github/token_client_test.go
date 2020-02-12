@@ -34,9 +34,10 @@ type dummyRepo struct {
 func (d dummyRepo) Owner() string { return d.owner }
 func (d dummyRepo) Name() string  { return d.name }
 
-func TestInstallationID_NoData(t *testing.T) {
+func TestInstallationID_BadStatus(t *testing.T) {
 	handle := func(w http.ResponseWriter) {
-		w.WriteHeader(201)
+		w.WriteHeader(401)
+		w.Write([]byte(`{}`))
 	}
 	withResponse(t, handle, func(c client) {
 		tc := tokenClient{
@@ -49,10 +50,10 @@ func TestInstallationID_NoData(t *testing.T) {
 	})
 }
 
-func TestInstallationID_Empty(t *testing.T) {
+func TestInstallationID_MalformedJSON(t *testing.T) {
 	handle := func(w http.ResponseWriter) {
-		w.WriteHeader(201)
-		w.Write([]byte(`{}`))
+		w.WriteHeader(200)
+		w.Write([]byte(`{{`))
 
 	}
 	withResponse(t, handle, func(c client) {
@@ -68,7 +69,7 @@ func TestInstallationID_Empty(t *testing.T) {
 
 func TestInstallationID_Valid(t *testing.T) {
 	handle := func(w http.ResponseWriter) {
-		w.WriteHeader(201)
+		w.WriteHeader(200)
 		w.Write([]byte(`{"id": 12345}`))
 	}
 	withResponse(t, handle, func(c client) {
@@ -80,6 +81,22 @@ func TestInstallationID_Valid(t *testing.T) {
 		id, err := tc.installationID(dummyRepo{})
 		require.NoError(t, err)
 		assert.Equal(t, "12345", id)
+	})
+}
+
+func TestInstallationID_EmptyID(t *testing.T) {
+	handle := func(w http.ResponseWriter) {
+		w.WriteHeader(200)
+		w.Write([]byte(`{}`))
+	}
+	withResponse(t, handle, func(c client) {
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		_, err := tc.installationID(dummyRepo{})
+		assert.Error(t, err)
 	})
 }
 
