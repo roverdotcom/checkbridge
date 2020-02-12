@@ -25,6 +25,7 @@ import (
 
 	"github.com/roverdotcom/checkbridge/parser"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type cobraRunner func(cmd *cobra.Command, args []string)
@@ -40,7 +41,7 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 		runner := runner{
 			name:  name,
 			parse: parse,
-			flags: cmd.Flags(),
+			vip:   viper.GetViper(),
 			env:   os.Getenv,
 		}
 		runner.run()

@@ -29,28 +29,28 @@ import (
 	"github.com/roverdotcom/checkbridge/github"
 	"github.com/roverdotcom/checkbridge/parser"
 	"github.com/sirupsen/logrus"
-	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 type runner struct {
 	name  string
 	parse parser.Parser
-	flags *flag.FlagSet
+	vip   *viper.Viper
 	env   func(string) string
 }
 
 func (r runner) run() {
-	vip := viper.GetViper()
-	configureLogging(r.flags)
+	exitZero := r.vip.GetBool("exit_zero")
+	fmt.Println("Exit zero", exitZero)
+	configureLogging(r.vip)
 
-	repo, err := newRepo(vip, r.env)
+	repo, err := newRepo(r.vip, r.env)
 	if err != nil {
 		logrus.WithError(err).Error("Unable to determine repository")
 		os.Exit(3)
 	}
 
-	head, err := getHeadSha(vip, r.env)
+	head, err := getHeadSha(r.vip, r.env)
 	if err != nil {
 		logrus.WithError(err).Error("Unable to read head SHA. Cannot continue.")
 		os.Exit(3)
@@ -124,10 +124,7 @@ func (r runner) reportResults(run github.CheckRun, result parser.Result, api git
 		return 5
 	}
 
-	if exitZero, err := r.flags.GetBool("exit-zero"); err != nil {
-		logrus.WithError(err).Error("Unable to read exit-zero flag")
-		return 1
-	} else if !exitZero {
+	if !r.vip.GetBool("exit_zero") {
 		logrus.Info("Exiting 1 due to issues found by tool. Pass --exit-zero to disable this behavior")
 		// Exit non-zero to mark the result of the pipeline as failed since the tool found issues with the code
 		return 1

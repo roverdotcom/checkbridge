@@ -22,7 +22,6 @@ package cmd
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -30,20 +29,18 @@ var rootCmd = &cobra.Command{
 	Use:   "checkbridge",
 	Short: "Checkbridge automates creating GitHub checks for CI",
 	Run: func(cmd *cobra.Command, args []string) {
-		configureLogging(cmd.Flags())
+		configureLogging(viper.GetViper())
 		if err := cmd.Usage(); err != nil {
 			logrus.WithError(err).Error("Error showing command usage")
 		}
 	},
 }
 
-func configureLogging(flags *flag.FlagSet) {
+func configureLogging(vip *viper.Viper) {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
 	})
-	if isVerbose, err := flags.GetBool("verbose"); err != nil {
-		logrus.WithError(err).Error("Unable to read verbosity")
-	} else if isVerbose {
+	if vip.GetBool("verbose") {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debug("Enabled verbose logging")
 	}
@@ -56,11 +53,14 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolP("exit-zero", "z", false, "exit zero even when tool reports issues")
 
-	rootCmd.PersistentFlags().StringP("github-repo", "r", "", "GitHub repository (e.g. 'roverdotcom/checkbridge')")
 	rootCmd.PersistentFlags().IntP("application-id", "a", 0, "GitHub application ID (numeric)")
 	rootCmd.PersistentFlags().IntP("installation-id", "i", 0, "GitHub installation ID (numeric)")
 	rootCmd.PersistentFlags().StringP("private-key", "p", "", "GitHub application private key path or value")
+	rootCmd.PersistentFlags().StringP("github-repo", "r", "", "GitHub repository (e.g. 'roverdotcom/checkbridge')")
 	rootCmd.PersistentFlags().StringP("commit-sha", "c", "", "commit SHA to report status checks for")
+
+	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	viper.BindPFlag("exit_zero", rootCmd.PersistentFlags().Lookup("exit-zero"))
 
 	viper.BindPFlag("application_id", rootCmd.PersistentFlags().Lookup("application-id"))
 	viper.BindPFlag("installation_id", rootCmd.PersistentFlags().Lookup("installation-id"))
