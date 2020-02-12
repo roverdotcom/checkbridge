@@ -21,6 +21,9 @@
 package github
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/dgrijalva/jwt-go"
@@ -98,4 +101,42 @@ func TestMakeJWT_OK(t *testing.T) {
 	claims := jwt.MapClaims{}
 	_, _, err = parser.ParseUnverified(jwtVal, claims)
 	require.NoError(t, err)
+}
+
+func TestGetToken_EndToEnd(t *testing.T) {
+	stubToken := "stub.token"
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// ensure auth for all calls
+		bearer := r.Header.Get("Authorization")
+		assert.Contains(t, bearer, "Bearer ")
+		assert.NotEmpty(t, r.Header.Get("Accept"), "missing Accept header")
+
+		if strings.HasSuffix(r.URL.Path, "/installation") {
+			w.Write([]byte(`{"id":42}`))
+		} else if strings.HasSuffix(r.URL.Path, "/access_tokens") {
+			assert.Contains(t, r.URL.Path, "installations/42/", "missing installation ID")
+			w.WriteHeader(201)
+			w.Write([]byte(`{"token":"` + stubToken + `"}`))
+		} else {
+			assert.Fail(t, "unexpected URL hit:"+r.URL.Path)
+		}
+	})
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	vip := viper.New()
+	vip.Set("private_key", testPrivateKey)
+	vip.Set("application_id", "my-id")
+	gh := githubAuth{
+		config:  vip,
+		apiBase: server.URL,
+	}
+
+	repo := dummyRepo{"org", "repo"}
+	perms := map[string]string{
+		"foo": "bar",
+	}
+	token, err := gh.GetToken(repo, perms)
+	require.NoError(t, err)
+	assert.Equal(t, stubToken, token)
 }
