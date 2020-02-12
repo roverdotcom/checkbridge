@@ -34,31 +34,43 @@ _Coming soon_
 
 ## Configuration
 
-All configuration can be passed as either command-line arguments or environment variables.
+All configuration can be passed as either command-line arguments or environment variables. All flags have shorthand values, run `checkbridge --help` to see them:
 
-Required flags:
+```
+Flags:
+  -a, --application-id int    GitHub application ID (numeric)
+  -c, --commit-sha string     commit SHA to report status checks for
+  -z, --exit-zero             exit zero even when tool reports issues
+  -r, --github-repo string    GitHub repository (e.g. 'roverdotcom/checkbridge')
+  -h, --help                  help for checkbridge
+  -i, --installation-id int   GitHub installation ID (numeric)
+  -p, --private-key string    GitHub application private key path or value
+  -v, --verbose               verbose output
+```
 
-| Flag               | Short |     Environment Variable     |                                              Description |
-| ------------------ | ----- | :--------------------------: | -------------------------------------------------------: |
-| `--application-id` | `-a`  | `CHECKBRIDGE_APPLICATION_ID` |                                    GitHub application ID |
-| `--private-key`    | `-p`  |  `CHECKBRIDGE_PRIVATE_KEY`   | GitHub application private key (path to `.pem` or value) |
+### Required flags
 
-### Optional flags
+| Flag               | Environment Variable         |
+| ------------------ | ---------------------------- |
+| `--application-id` | `CHECKBRIDGE_APPLICATION_ID` |
+| `--private-key`    | `CHECKBRIDGE_PRIVATE_KEY`    |
+
+#### Optional flags
 
 The following flags can be configured, but are not required by default.
 
-| Flag                | Short |     Environment Variable      |                                Description |
-| ------------------- | ----- | :---------------------------: | -----------------------------------------: |
-| `--installation-id` | `-i`  | `CHECKBRIDGE_INSTALLATION_ID` |         GitHub application installation ID |
-| `--commit-sha`      | `-c`  |   `CHECKBRIDGE_COMMIT_SHA`    |   Commit SHA to report to checks API under |
-| `--github-repo`     | `-r`  |   `CHECKBRIDGE_GITHUB_REPO`   | Repository, e.g. 'roverdotcom/checkbridge' |
+| Flag                | Environment Variable          |
+| ------------------- | ----------------------------- |
+| `--installation-id` | `CHECKBRIDGE_INSTALLATION_ID` |
+| `--commit-sha`      | `CHECKBRIDGE_COMMIT_SHA`      |
+| `--github-repo`     | `CHECKBRIDGE_GITHUB_REPO`     |
 
 ### Defaults
 
 `--installation-id` will be looked up dynamically if not provided, by doing a `GET` to
-`/repos/:owner/:repo/installation`.
+`/repos/:owner/:repo/installation` with the provided private key / application ID.
 
-`--commit-sha` will be read from `$GITHUB_SHA`, `$BUILDKITE_COMMIT`, or `git rev-parse HEAD`
+`--commit-sha` will be read from `$GITHUB_SHA`, `$BUILDKITE_COMMIT`, or `$(git rev-parse HEAD)`
 
 `--github-repo` will be read from `$GITHUB_REPO` or `$BUILDKITE_REPOSITORY` if present
 
