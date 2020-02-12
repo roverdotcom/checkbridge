@@ -113,8 +113,11 @@ func (r runner) reportResults(run github.CheckRun, result parser.Result, api git
 
 	logrus.Infof("Got %d annotations", len(result.Annotations))
 
-	// TODO allow neutral status
-	run.Conclusion = github.CheckConclusionFailure
+	if r.vip.GetBool("annotate_only") {
+		run.Conclusion = github.CheckConclusionNeutral
+	} else {
+		run.Conclusion = github.CheckConclusionFailure
+	}
 	run.Output = result
 
 	if err := api.CreateCheck(run); err != nil {

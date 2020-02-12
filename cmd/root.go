@@ -52,19 +52,23 @@ func init() {
 
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolP("exit-zero", "z", false, "exit zero even when tool reports issues")
+	rootCmd.PersistentFlags().BoolP("annotate-only", "o", false, "only leave annotations, never mark check as failed")
 
 	rootCmd.PersistentFlags().IntP("application-id", "a", 0, "GitHub application ID (numeric)")
 	rootCmd.PersistentFlags().IntP("installation-id", "i", 0, "GitHub installation ID (numeric)")
 	rootCmd.PersistentFlags().StringP("private-key", "p", "", "GitHub application private key path or value")
+
 	rootCmd.PersistentFlags().StringP("github-repo", "r", "", "GitHub repository (e.g. 'roverdotcom/checkbridge')")
 	rootCmd.PersistentFlags().StringP("commit-sha", "c", "", "commit SHA to report status checks for")
 
 	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
 	viper.BindPFlag("exit_zero", rootCmd.PersistentFlags().Lookup("exit-zero"))
+	viper.BindPFlag("annotate_only", rootCmd.PersistentFlags().Lookup("annotate-only"))
 
 	viper.BindPFlag("application_id", rootCmd.PersistentFlags().Lookup("application-id"))
 	viper.BindPFlag("installation_id", rootCmd.PersistentFlags().Lookup("installation-id"))
 	viper.BindPFlag("private_key", rootCmd.PersistentFlags().Lookup("private-key"))
+
 	viper.BindPFlag("github_repo", rootCmd.PersistentFlags().Lookup("github-repo"))
 	viper.BindPFlag("commit_sha", rootCmd.PersistentFlags().Lookup("commit-sha"))
 
