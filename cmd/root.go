@@ -74,6 +74,7 @@ func init() {
 
 	rootCmd.AddCommand(golintCmd)
 	rootCmd.AddCommand(mypyCmd)
+	rootCmd.AddCommand(authCheckCommand)
 }
 
 func initConfig() {
