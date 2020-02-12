@@ -82,6 +82,7 @@ func init() {
 	viper.BindEnv("github_token", "GITHUB_TOKEN")
 	// Allow $GITHUB_REPOSITORY for GitHub actions
 	viper.BindEnv("github_repo", "GITHUB_REPOSITORY")
+	viper.BindEnv("details_url", "BUILDKITE_BUILD_URL")
 
 	rootCmd.AddCommand(golintCmd)
 	rootCmd.AddCommand(mypyCmd)
