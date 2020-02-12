@@ -46,13 +46,15 @@ type ConfigProvider interface {
 }
 
 type githubAuth struct {
-	config ConfigProvider
+	config  ConfigProvider
+	apiBase string
 }
 
 // NewAuthProvider creates an auth provider from the given environment
 func NewAuthProvider(c ConfigProvider) AuthProvider {
 	return githubAuth{
-		config: c,
+		config:  c,
+		apiBase: apiBase,
 	}
 }
 
@@ -74,7 +76,7 @@ func (g githubAuth) readPrivateKey(pathOrKey string) (*rsa.PrivateKey, error) {
 
 func (g githubAuth) makeJWT() (string, error) {
 	applicationID := g.config.GetString("application_id")
-	if applicationID == "0" {
+	if applicationID == "0" || applicationID == "" {
 		return "", errors.New("no application ID provided")
 	}
 
@@ -116,11 +118,11 @@ func (g githubAuth) GetToken(r Repo, perms map[string]string) (string, error) {
 	tc := tokenClient{
 		client: client{
 			authToken: appJWT,
-			apiBase:   apiBase,
+			apiBase:   g.apiBase,
 		},
 	}
 
-	if installationID == "0" {
+	if installationID == "0" || installationID == "" {
 		logrus.Debug("No installation ID provided, asking GitHub")
 		installationID, err = tc.installationID(r)
 		if err != nil {
