@@ -54,6 +54,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("exit-zero", "z", false, "exit zero even when tool reports issues")
 	rootCmd.PersistentFlags().BoolP("annotate-only", "o", false, "only leave annotations, never mark check as failed")
 	rootCmd.PersistentFlags().BoolP("mark-in-progress", "m", false, "mark check as in progress before parsing")
+	rootCmd.PersistentFlags().StringP("details-url", "d", "", "details URL to send for check")
 
 	rootCmd.PersistentFlags().IntP("application-id", "a", 0, "GitHub application ID (numeric)")
 	rootCmd.PersistentFlags().IntP("installation-id", "i", 0, "GitHub installation ID (numeric)")
@@ -67,6 +68,7 @@ func init() {
 	viper.BindPFlag("exit_zero", rootCmd.PersistentFlags().Lookup("exit-zero"))
 	viper.BindPFlag("annotate_only", rootCmd.PersistentFlags().Lookup("annotate-only"))
 	viper.BindPFlag("mark_in_progress", rootCmd.PersistentFlags().Lookup("mark-in-progress"))
+	viper.BindPFlag("details_url", rootCmd.PersistentFlags().Lookup("details-url"))
 
 	viper.BindPFlag("application_id", rootCmd.PersistentFlags().Lookup("application-id"))
 	viper.BindPFlag("installation_id", rootCmd.PersistentFlags().Lookup("installation-id"))
@@ -80,6 +82,7 @@ func init() {
 	viper.BindEnv("github_token", "GITHUB_TOKEN")
 	// Allow $GITHUB_REPOSITORY for GitHub actions
 	viper.BindEnv("github_repo", "GITHUB_REPOSITORY")
+	viper.BindEnv("details_url", "BUILDKITE_BUILD_URL")
 
 	rootCmd.AddCommand(golintCmd)
 	rootCmd.AddCommand(mypyCmd)

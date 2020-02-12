@@ -51,6 +51,7 @@ Flags:
   -o, --annotate-only         only leave annotations, never mark check as failed
   -a, --application-id int    GitHub application ID (numeric)
   -c, --commit-sha string     commit SHA to report status checks for
+  -d, --details-url string    details URL to send for check
   -z, --exit-zero             exit zero even when tool reports issues
   -r, --github-repo string    GitHub repository (e.g. 'roverdotcom/checkbridge')
   -h, --help                  help for checkbridge
