@@ -104,6 +104,9 @@ func TestMakeJWT_OK(t *testing.T) {
 }
 
 func TestGetToken_EndToEnd(t *testing.T) {
+	installationCalled := false
+	tokenCalled := false
+
 	stubToken := "stub.token"
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// ensure auth for all calls
@@ -113,10 +116,12 @@ func TestGetToken_EndToEnd(t *testing.T) {
 
 		if strings.HasSuffix(r.URL.Path, "/installation") {
 			w.Write([]byte(`{"id":42}`))
+			installationCalled = true
 		} else if strings.HasSuffix(r.URL.Path, "/access_tokens") {
 			assert.Contains(t, r.URL.Path, "installations/42/", "missing installation ID")
 			w.WriteHeader(201)
 			w.Write([]byte(`{"token":"` + stubToken + `"}`))
+			tokenCalled = true
 		} else {
 			assert.Fail(t, "unexpected URL hit:"+r.URL.Path)
 		}
@@ -139,4 +144,6 @@ func TestGetToken_EndToEnd(t *testing.T) {
 	token, err := gh.GetToken(repo, perms)
 	require.NoError(t, err)
 	assert.Equal(t, stubToken, token)
+	assert.True(t, installationCalled)
+	assert.True(t, tokenCalled)
 }
