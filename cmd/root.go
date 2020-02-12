@@ -57,6 +57,7 @@ func init() {
 	rootCmd.PersistentFlags().IntP("application-id", "a", 0, "GitHub application ID (numeric)")
 	rootCmd.PersistentFlags().IntP("installation-id", "i", 0, "GitHub installation ID (numeric)")
 	rootCmd.PersistentFlags().StringP("private-key", "p", "", "GitHub application private key path or value")
+	rootCmd.PersistentFlags().StringP("github-token", "t", "", "short-lived GitHub app token for checks auth")
 
 	rootCmd.PersistentFlags().StringP("github-repo", "r", "", "GitHub repository (e.g. 'roverdotcom/checkbridge')")
 	rootCmd.PersistentFlags().StringP("commit-sha", "c", "", "commit SHA to report status checks for")
@@ -68,6 +69,7 @@ func init() {
 	viper.BindPFlag("application_id", rootCmd.PersistentFlags().Lookup("application-id"))
 	viper.BindPFlag("installation_id", rootCmd.PersistentFlags().Lookup("installation-id"))
 	viper.BindPFlag("private_key", rootCmd.PersistentFlags().Lookup("private-key"))
+	viper.BindPFlag("github_token", rootCmd.PersistentFlags().Lookup("github-token"))
 
 	viper.BindPFlag("github_repo", rootCmd.PersistentFlags().Lookup("github-repo"))
 	viper.BindPFlag("commit_sha", rootCmd.PersistentFlags().Lookup("commit-sha"))
