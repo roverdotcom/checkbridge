@@ -74,6 +74,11 @@ func init() {
 	viper.BindPFlag("github_repo", rootCmd.PersistentFlags().Lookup("github-repo"))
 	viper.BindPFlag("commit_sha", rootCmd.PersistentFlags().Lookup("commit-sha"))
 
+	// Allow $GITHUB_TOKEN by convention
+	viper.BindEnv("github_token", "GITHUB_TOKEN")
+	// Allow $GITHUB_REPOSITORY for GitHub actions
+	viper.BindEnv("github_repo", "GITHUB_REPOSITORY")
+
 	rootCmd.AddCommand(golintCmd)
 	rootCmd.AddCommand(mypyCmd)
 	rootCmd.AddCommand(authCheckCommand)

@@ -21,63 +21,82 @@ package github
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func withResponse(t *testing.T, handle func(w http.ResponseWriter), action func(client)) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handle(w)
-	})
-	server := httptest.NewServer(handler)
-	defer server.Close()
-
-	client := client{
-		apiBase:   server.URL,
-		authToken: "token",
-	}
-
-	action(client)
+type dummyRepo struct {
+	owner, name string
 }
-func TestGetJSON_NoData(t *testing.T) {
+
+func (d dummyRepo) Owner() string { return d.owner }
+func (d dummyRepo) Name() string  { return d.name }
+
+func TestInstallationID_NoData(t *testing.T) {
 	handle := func(w http.ResponseWriter) {
-		w.WriteHeader(200)
+		w.WriteHeader(201)
 	}
 	withResponse(t, handle, func(c client) {
-		_, err := c.getJSON("/foo", nil, nil)
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		_, err := tc.installationID(dummyRepo{})
 		assert.Error(t, err)
 	})
 }
 
-func TestGetJSON_OK(t *testing.T) {
-	data := map[string]int{}
+func TestInstallationID_Empty(t *testing.T) {
 	handle := func(w http.ResponseWriter) {
-		w.Write([]byte(`{"answer": 42}`))
-	}
+		w.WriteHeader(201)
+		w.Write([]byte(`{}`))
 
+	}
 	withResponse(t, handle, func(c client) {
-		_, err := c.getJSON("/foo", nil, &data)
-		require.NoError(t, err)
-		assert.Equal(t, 42, data["answer"])
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		_, err := tc.installationID(dummyRepo{})
+		assert.Error(t, err)
 	})
 }
 
-func TestPostJSON_OK(t *testing.T) {
-	headers := map[string]string{
-		"key": "value",
-	}
-	data := map[string]string{}
+func TestInstallationID_Valid(t *testing.T) {
 	handle := func(w http.ResponseWriter) {
-		w.Write([]byte(`{"hello": "world"}`))
+		w.WriteHeader(201)
+		w.Write([]byte(`{"id": 12345}`))
 	}
-
 	withResponse(t, handle, func(c client) {
-		_, err := c.postJSON("/url", nil, headers, &data)
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
 
+		id, err := tc.installationID(dummyRepo{})
 		require.NoError(t, err)
-		assert.Equal(t, "world", data["hello"])
+		assert.Equal(t, "12345", id)
+	})
+}
+
+func TestGetAccessToken_OK(t *testing.T) {
+	token := "v1.1234"
+	handle := func(w http.ResponseWriter) {
+		w.WriteHeader(201)
+		w.Write([]byte(`{"token": "` + token + `"}`))
+	}
+	withResponse(t, handle, func(c client) {
+		tc := tokenClient{
+			client: c,
+			jwt:    "jwt",
+		}
+
+		token, err := tc.getAccesssToken("fake-installation-id", nil)
+		require.NoError(t, err)
+		assert.Equal(t, token, token)
 	})
 }

@@ -41,11 +41,9 @@ func (e envStub) get(key string) string {
 }
 
 func TestNewRepo_FromGithub(t *testing.T) {
-	env := envStub{
-		"GITHUB_REPOSITORY",
-		"foo/bar",
-	}
-	repo, err := newRepo(viper.GetViper(), env.get)
+	vip := viper.New()
+	vip.Set("github_repo", "foo/bar")
+	repo, err := newRepo(vip, envStub{}.get)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", repo.owner)
 	assert.Equal(t, "bar", repo.name)
@@ -56,7 +54,7 @@ func TestNewRepo_FromBuildKite(t *testing.T) {
 		"BUILDKITE_REPO",
 		"git@github.com:org/with-dashes.git",
 	}
-	repo, err := newRepo(viper.GetViper(), env.get)
+	repo, err := newRepo(viper.New(), env.get)
 	require.NoError(t, err)
 	assert.Equal(t, "org", repo.owner)
 	assert.Equal(t, "with-dashes", repo.name)
@@ -67,7 +65,7 @@ func TestNewRepo_MalformedBK(t *testing.T) {
 		"BUILDKITE_REPO",
 		"ssh://github.com:org|with-dashes.git",
 	}
-	_, err := newRepo(viper.GetViper(), env.get)
+	_, err := newRepo(viper.New(), env.get)
 	assert.Error(t, err)
 }
 
@@ -76,7 +74,7 @@ func TestNewRepo_EmptyBK(t *testing.T) {
 		"BUILDKITE_REPO",
 		"",
 	}
-	_, err := newRepo(viper.GetViper(), env.get)
+	_, err := newRepo(viper.New(), env.get)
 	assert.Error(t, err)
 }
 

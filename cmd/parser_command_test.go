@@ -45,7 +45,7 @@ func (s *stubClient) CreateCheck(check github.CheckRun) error {
 
 func TestAPIClient_NoToken(t *testing.T) {
 	r := environment{
-		env: func(string) string { return "" },
+		vip: viper.New(),
 	}
 
 	_, err := r.apiClient(repo{})
@@ -53,8 +53,10 @@ func TestAPIClient_NoToken(t *testing.T) {
 }
 
 func TestAPIClient_ValidToken(t *testing.T) {
+	vip := viper.New()
+	vip.Set("github_token", "token")
 	r := environment{
-		env: func(string) string { return "token" },
+		vip: vip,
 	}
 
 	_, err := r.apiClient(repo{})

@@ -24,7 +24,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -32,65 +31,65 @@ import (
 
 const apiBase = "https://api.github.com"
 
-// Client is an interface to GitHub's API
-type Client interface {
-	CreateCheck(CheckRun) error
-}
-
 type client struct {
-	token   string
-	owner   string
-	repo    string
-	apiBase string
+	authToken string
+	apiBase   string
 }
 
-// NewClient creates a GitHub API client for creating checks
-func NewClient(token string, owner string, repo string) Client {
-	return client{
-		apiBase: apiBase,
-		token:   token,
-		owner:   owner,
-		repo:    repo,
-	}
+func (c client) addAuthHeader(req *http.Request) {
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
 }
 
-func (c client) checkURL() string {
-	return fmt.Sprintf("%s/repos/%s/%s/check-runs", c.apiBase, c.owner, c.repo)
-}
-
-func (c client) CreateCheck(check CheckRun) error {
-	if len(check.Output.Annotations) > 50 {
-		logrus.Warnf("More than 50 annotations provided (%d), only sending first 50", len(check.Output.Annotations))
-		check.Output.Annotations = check.Output.Annotations[:50]
-	}
-	buf := bytes.Buffer{}
-	if err := json.NewEncoder(&buf).Encode(check); err != nil {
-		return err
-	}
-	url := c.checkURL()
-	logrus.WithField("url", url).WithField("body", buf.String()).Debug("Making HTTP request to GitHub check-runs API")
-
-	req, err := http.NewRequest(http.MethodPost, url, &buf)
-	if err != nil {
-		return err
-	}
-
-	req.Header.Add("Accept", "application/vnd.github.antiope-preview+json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.token))
-
+func (c client) decodeResponse(req *http.Request, result interface{}) (*http.Response, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+
+	decoder := json.NewDecoder(resp.Body)
+	if err := decoder.Decode(result); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (c client) getJSON(url string, headers map[string]string, result interface{}) (*http.Response, error) {
+	fullURL := fmt.Sprintf("%s/%s", c.apiBase, url)
+	req, err := http.NewRequest(http.MethodGet, fullURL, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	logrus.WithField("status", resp.Status).WithField("body", string(body)).Debug("Got check create response")
-	if resp.StatusCode != 201 {
-		return fmt.Errorf("error response from GitHub %d: %s", resp.StatusCode, string(body))
+	c.addAuthHeader(req)
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
 	}
-	return nil
+
+	return c.decodeResponse(req, result)
+}
+
+func (c client) postJSON(url string, body interface{}, headers map[string]string, result interface{}) (*http.Response, error) {
+	buf := bytes.Buffer{}
+	if err := json.NewEncoder(&buf).Encode(body); err != nil {
+		return nil, err
+	}
+	fullURL := fmt.Sprintf("%s/%s", c.apiBase, url)
+	logrus.WithField("url", fullURL).WithField("body", buf.String()).Debug("Making HTTP request to GitHub API")
+
+	req, err := http.NewRequest(http.MethodPost, fullURL, &buf)
+	if err != nil {
+		return nil, err
+	}
+
+	c.addAuthHeader(req)
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
+	return c.decodeResponse(req, result)
 }

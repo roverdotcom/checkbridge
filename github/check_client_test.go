@@ -18,30 +18,60 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package cmd
+package github
 
 import (
-	"github.com/roverdotcom/checkbridge/github"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-type environment struct {
-	vip *viper.Viper
-	env func(string) string
+type mockHandler struct {
+	called bool
+	status int
 }
 
-func (e environment) githubToken(repo repo) (string, error) {
-	auth := github.NewAuthProvider(e.vip)
-	return auth.GetToken(repo, defaultPerms)
+func (m *mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	m.called = true
+	w.WriteHeader(m.status)
+	w.Write([]byte(`{}`))
 }
 
-func (e environment) apiClient(repo repo) (github.CheckClient, error) {
-	token, err := e.githubToken(repo)
-	if err != nil {
-		return nil, err
+func createHandler(status int) mockHandler {
+	return mockHandler{
+		status: status,
 	}
-	logrus.WithField("token", token).Debug("Got GitHub checks token")
+}
 
-	return github.NewCheckClient(token, repo), nil
+func createCheck(handler *mockHandler) error {
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	client := checkClient{
+		client: client{
+			apiBase:   server.URL,
+			authToken: "fake-token",
+		},
+		repo:  "repo",
+		owner: "owner",
+	}
+
+	return client.CreateCheck(CheckRun{
+		Name: "my-name",
+	})
+}
+
+func TestCreateCheck_OK(t *testing.T) {
+	handler := createHandler(201)
+	err := createCheck(&handler)
+	assert.NoError(t, err)
+	assert.True(t, handler.called)
+}
+
+func TestCreateCheck_NotFound(t *testing.T) {
+	handler := createHandler(404)
+	err := createCheck(&handler)
+	assert.Error(t, err)
 }

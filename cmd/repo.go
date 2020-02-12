@@ -36,6 +36,14 @@ type repo struct {
 	name  string
 }
 
+func (r repo) Name() string {
+	return r.name
+}
+
+func (r repo) Owner() string {
+	return r.owner
+}
+
 var githubRepoRegex = regexp.MustCompile("git@github.com:(.+)/(.+)")
 
 func repoFromPath(path string) (repo, error) {
@@ -54,12 +62,6 @@ func newRepo(v *viper.Viper, env func(string) string) (repo, error) {
 	if passedRepo != "" {
 		logrus.WithField("repo", passedRepo).Debug("Using repo from configuration")
 		return repoFromPath(passedRepo)
-	}
-
-	ghRepo := env("GITHUB_REPOSITORY")
-	if ghRepo != "" {
-		logrus.WithField("repo", ghRepo).Debug("Using GITHUB_REPOSITORY environment value")
-		return repoFromPath(ghRepo)
 	}
 
 	bkRepo := env("BUILDKITE_REPO")
