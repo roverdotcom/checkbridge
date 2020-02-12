@@ -67,9 +67,10 @@ func (p parseRunner) run() {
 	}
 
 	run := github.CheckRun{
-		Status:  github.CheckStatusInProgress,
-		Name:    p.name,
-		HeadSHA: head,
+		Status:     github.CheckStatusInProgress,
+		Name:       p.name,
+		HeadSHA:    head,
+		DetailsURL: p.vip.GetString("details_url"),
 	}
 	if p.vip.GetBool("mark_in_progress") {
 		logrus.Debug("Marking check as in-progress with GitHub")
