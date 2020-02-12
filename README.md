@@ -1,5 +1,4 @@
-![Test Status](https://github.com/roverdotcom/checkbridge/workflows/Test/badge.svg)
-## Checkbridge
+## Checkbridge ![build status](https://github.com/roverdotcom/checkbridge/workflows/Test/badge.svg)
 
 Command-line utility to allow creating arbitrary [GitHub
 checks](https://developer.github.com/v3/checks/) from other command-line
