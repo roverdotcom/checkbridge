@@ -1,5 +1,4 @@
-![Test Status](https://github.com/roverdotcom/checkbridge/workflows/Test/badge.svg)
-## Checkbridge
+## Checkbridge ![build status](https://github.com/roverdotcom/checkbridge/workflows/Test/badge.svg)
 
 Command-line utility to allow creating arbitrary [GitHub
 checks](https://developer.github.com/v3/checks/) from other command-line
@@ -24,15 +23,22 @@ In order to use GitHub checks on commits and pull requests, you need to have
 a GitHub app provisioned and installed in your organization with `write` scope
 on the `checks` [permission].
 
-**TODO** show steps to create and install a GitHub app.
-
 [github checks]: https://developer.github.com/v3/checks/
 [lint action]: https://github.com/samuelmeuli/lint-action
 [permission]: https://developer.github.com/v3/apps/permissions/#permission-on-checks
 
 ## Usage
 
-_Coming soon_
+`checkbridge` requires GitHub credentials to report checks. Read through the [configuration]
+and [authentication] sections to see get started. Once configured, you can create checks by
+piping your desired tool into a `checkbridge` subcommand. For example:
+
+```bash
+golint ./... | checkbridge golint
+```
+
+[configuration]: #configuration
+[authentication]: #authentication
 
 ## Configuration
 
@@ -69,6 +75,7 @@ The following flags can be configured, but are not required by default.
 | `--installation-id` | `CHECKBRIDGE_INSTALLATION_ID` |
 | `--commit-sha`      | `CHECKBRIDGE_COMMIT_SHA`      |
 | `--github-repo`     | `CHECKBRIDGE_GITHUB_REPO`     |
+| `--github-token`    | `CHECKBRIDGE_GITHUB_TOKEN`    |
 
 ### Defaults
 
@@ -78,6 +85,85 @@ The following flags can be configured, but are not required by default.
 `--commit-sha` will be read from `$GITHUB_SHA`, `$BUILDKITE_COMMIT`, or `$(git rev-parse HEAD)`
 
 `--github-repo` will be read from `$GITHUB_REPO` or `$BUILDKITE_REPOSITORY` if present
+
+`--github-token` will be read from `$GITHUB_TOKEN` if present (i.e. when run via GitHub actions)
+
+## Authentication
+
+Using the GitHub checks API requires a GitHub app to be created and installed, with `checks`
+permission on the repo you're running against.
+
+GitHub application tokens, unlike GitHub user tokens, are short-lived (1 hour) and thus must
+usually be fetched for each run. When running via GitHub actions, you automatically have a
+token (available under `secrets.github_token`) available for the "GitHub actions" application
+for your use. You can see an example of this in this repo's [lint.yml](./.github/workflows/lint.yml)
+workflow.
+
+If you're running via GitHub actions, simply provide the token (as `--github-token`,
+`$GITHUB_TOKEN`, or `$CHECKBRIDGE_GITHUB_TOKEN`) and you're good to go. If you're _not_ running via
+GitHub actions (for example, you're using [BuildKite](https://buildkite.com/)), read on.
+
+### Creating a GitHub app
+
+First, you'll need to [create a GitHub app].
+
+You'll start with [registering your app]. Give it a descriptive name and a homepage (these are
+required fields). We won't be doing any OAuth (user authorization) so you can leave most of the
+rest blank. Under the "Permissions" section, you'll need to select "Read & write" access
+to the "Checks" permission.
+
+If you're going to use your application on an organization (as opposed to just your own repos),
+select "Any account" under "Where can this GitHub App be installed?"
+
+Once created, you'll need to grab two pieces of information:
+
+1. The application ID, which will be at the very top of the page ("App ID")
+2. A private key, at the very bottom of the page. You can generate a new one when your
+   app is first created. This will prompt you to download a `.pem` file containing the private key.
+
+[create a github app]: https://developer.github.com/apps/building-github-apps/creating-a-github-app/
+[registering your app]: https://github.com/settings/apps/new
+
+After creating the app and saving the app's ID and private key, you'll need to install it. On the
+lefthand side of the app's detail page, click "Install App" and select the organization (or your
+own account) you'd like to use. This will prompt you to accept the new application. Verify that
+it looks correct, and click "Install".
+
+Installing an application generates an installation ID, which will be the final part of the URL on
+the page you're sent to (i.e. `https://github.com/settings/installations/1234` where `1234` is your)
+installation ID. Installation IDs represent an instance of an application being installed in an
+organization or user account.
+
+While saving and using the installation ID is optional, it saves an extra API call every time
+`checkbridge` is run.
+
+The final step is to make the application ID, private key, and optionally the installation ID,
+available to `checkbridge`. Do _not_ commit the private key to your repository.
+
+You should verify your credentials are correct by running `checkbridge check-auth`:
+For example:
+
+```bash
+# These could be configured in your CI environment
+export CHECKBRIDGE_APPLICATION_ID="456"
+export CHECKBRIDGE_PRIVATE_KEY="/tmp/private_key.pm"
+export CHECKBRIDGE_INSTALLATION_ID="1234"  # application 456 installed in "myorg"
+
+checkbridge check-auth --github-repo=myorg/myrepo
+```
+
+Or specifying as command-line flags:
+
+```bash
+# --installation-id left off, will look it up dynamically
+checkbridge check-auth \
+  --github-repo=myorg/myrepo \
+  --application-id=456 \
+  --private-key=/tmp/private_key.pem
+```
+
+If it returns an error, validate you've passed the correct configuration values. If it returns
+success, you're ready to use `checkbridge`.
 
 ## Development
 
