@@ -5,6 +5,8 @@ Command-line utility to allow creating arbitrary [GitHub
 checks](https://developer.github.com/v3/checks/) from other command-line
 utilities.
 
+![Screenshot](/.github/screenshots/go-lint-check-screenshot.png)
+
 ## About
 
 If you're using GitHub actions, have a look at [Lint Action] instead, which
