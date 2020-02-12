@@ -43,9 +43,13 @@ type installationResponse struct {
 func (t tokenClient) installationID(r Repo) (string, error) {
 	url := fmt.Sprintf("repos/%s/%s/installation", r.Owner(), r.Name())
 	installation := installationResponse{}
-	_, err := t.getJSON(url, tokenAuthHeaders, &installation)
+	resp, err := t.getJSON(url, tokenAuthHeaders, &installation)
 	if err != nil {
 		return "", err
+	}
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("non-200 response from GitHub: %s", resp.Status)
 	}
 
 	if installation.ID == 0 {
