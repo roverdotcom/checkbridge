@@ -114,6 +114,7 @@ func TestGetToken_EndToEnd(t *testing.T) {
 		if strings.HasSuffix(r.URL.Path, "/installation") {
 			w.Write([]byte(`{"id":42}`))
 		} else if strings.HasSuffix(r.URL.Path, "/access_tokens") {
+			assert.Contains(t, r.URL.Path, "installations/42/", "missing installation ID")
 			w.WriteHeader(201)
 			w.Write([]byte(`{"token":"` + stubToken + `"}`))
 		} else {
