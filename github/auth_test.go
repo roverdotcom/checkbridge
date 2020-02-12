@@ -24,29 +24,16 @@ import (
 	"testing"
 
 	"github.com/roverdotcom/checkbridge/github"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type mapEnvProvider struct {
-	data map[string]string
-}
-
-func (m mapEnvProvider) Getenv(key string) string {
-	if data, ok := m.data[key]; ok {
-		return data
-	}
-	return ""
-}
-
 func TestGithubAuth_GetTokenFromEnv(t *testing.T) {
+	vip := viper.New()
 	mytoken := "mytoken"
-	env := mapEnvProvider{
-		data: map[string]string{
-			"GITHUB_TOKEN": mytoken,
-		},
-	}
-	auth := github.NewAuthProvider(env.Getenv)
+	vip.Set("github_token", mytoken)
+	auth := github.NewAuthProvider(vip)
 
 	token, err := auth.GetToken(map[string]string{})
 	require.NoError(t, err, "error getting token")
@@ -54,8 +41,7 @@ func TestGithubAuth_GetTokenFromEnv(t *testing.T) {
 }
 
 func TestGithubAuth_GetTokenNoEnv(t *testing.T) {
-	env := mapEnvProvider{}
-	auth := github.NewAuthProvider(env.Getenv)
+	auth := github.NewAuthProvider(viper.New())
 
 	_, err := auth.GetToken(nil)
 	assert.Error(t, err)

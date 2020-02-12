@@ -41,11 +41,9 @@ func (e envStub) get(key string) string {
 }
 
 func TestNewRepo_FromGithub(t *testing.T) {
-	env := envStub{
-		"GITHUB_REPOSITORY",
-		"foo/bar",
-	}
-	repo, err := newRepo(viper.GetViper(), env.get)
+	vip := viper.New()
+	vip.Set("github_repo", "foo/bar")
+	repo, err := newRepo(vip, envStub{}.get)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", repo.owner)
 	assert.Equal(t, "bar", repo.name)

@@ -56,12 +56,6 @@ func newRepo(v *viper.Viper, env func(string) string) (repo, error) {
 		return repoFromPath(passedRepo)
 	}
 
-	ghRepo := env("GITHUB_REPOSITORY")
-	if ghRepo != "" {
-		logrus.WithField("repo", ghRepo).Debug("Using GITHUB_REPOSITORY environment value")
-		return repoFromPath(ghRepo)
-	}
-
 	bkRepo := env("BUILDKITE_REPO")
 	if bkRepo != "" {
 		logrus.WithField("repo", bkRepo).Debug("Using BUILDKITE_REPO environment value")

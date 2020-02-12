@@ -32,7 +32,7 @@ type environment struct {
 }
 
 func (e environment) githubToken() (string, error) {
-	auth := github.NewAuthProvider(e.env)
+	auth := github.NewAuthProvider(e.vip)
 	return auth.GetToken(defaultPerms)
 }
 

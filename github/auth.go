@@ -20,41 +20,37 @@
 
 package github
 
-import "errors"
+import (
+	"errors"
 
-type authConfig struct {
-	token             string
-	AppID             *string
-	AppInstallationID *string
-	PrivateKey        *string
-}
+	"github.com/sirupsen/logrus"
+)
 
 // AuthProvider handles getting a GitHub token for the given permissions
 type AuthProvider interface {
 	GetToken(perms map[string]string) (string, error)
 }
 
-// EnvironProvider is an interface over os.Getenv to allow easier testing
-type EnvironProvider func(string) string
+// ConfigProvider is an interface over *viper.Viper
+type ConfigProvider interface {
+	GetString(string) string
+}
 
 type githubAuth struct {
-	config authConfig
+	config ConfigProvider
 }
 
 // NewAuthProvider creates an auth provider from the given environment
-func NewAuthProvider(env EnvironProvider) AuthProvider {
-	// TODO accept cobra/viper configuration params
+func NewAuthProvider(c ConfigProvider) AuthProvider {
 	return githubAuth{
-		config: authConfig{
-			token: env("GITHUB_TOKEN"),
-		},
+		config: c,
 	}
 }
 
 func (g githubAuth) GetToken(perms map[string]string) (string, error) {
-	// TODO handle JWT/installation exchange
-	if g.config.token == "" {
-		return "", errors.New("No token provided or configured")
+	if token := g.config.GetString("github_token"); token != "" {
+		logrus.Debug("Using explicit GitHub token, skipping JWT exchange")
+		return token, nil
 	}
-	return g.config.token, nil
+	return "", errors.New("No token provided or configured")
 }
