@@ -49,10 +49,9 @@ func runAuthCheck(vip *viper.Viper, env func(string) string) error {
 	if err != nil {
 		return err
 	}
-	token, err := e.githubToken(repo)
-	if err != nil {
+	if _, err = e.githubToken(repo); err != nil {
 		return err
 	}
-	logrus.WithField("token", token).Info("Got auth token")
+	logrus.Info("Authentication succeeded")
 	return nil
 }
