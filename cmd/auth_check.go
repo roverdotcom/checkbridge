@@ -35,6 +35,7 @@ var authCheckCommand = &cobra.Command{
 		configureLogging(vip)
 		if err := runAuthCheck(vip, os.Getenv); err != nil {
 			logrus.WithError(err).Error("Auth check failed")
+			os.Exit(2)
 		}
 	},
 }
