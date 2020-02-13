@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Overridden by ldflags in dist/release.sh
+// Version is overridden by ldflags in dist/release.sh
 var Version string = "development"
 
 var versionCmd = &cobra.Command{
