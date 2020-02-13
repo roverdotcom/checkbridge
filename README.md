@@ -39,8 +39,6 @@ curl -L https://github.com/roverdotcom/checkbridge/releases/download/v0.0.1/chec
     | tar zxf - -C /usr/local/bin
 ```
 
-Would install `checkbridge` release `v0.1.0` into `/usr/local/bin/`
-
 You can also install from source if you have Go 1.11+ installed:
 
 ```bash
