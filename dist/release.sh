@@ -19,6 +19,11 @@ if [[ "${BRANCH}" != "master" ]] ; then
   exit 3
 fi
 
+if ! grep "$VERSION" README.md > /dev/null ; then
+  echo "Readme not pointing downloads to $VERSION"
+  exit 4
+fi
+
 ARCH="$(go env GOARCH)"
 
 for os in linux darwin; do
