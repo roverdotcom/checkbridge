@@ -1,5 +1,7 @@
 ## Checkbridge ![build status](https://github.com/roverdotcom/checkbridge/workflows/Test/badge.svg)
 
+**Project Status**: Alpha
+
 Command-line utility to allow creating arbitrary [GitHub
 checks](https://developer.github.com/v3/checks/) from other command-line
 utilities.
@@ -26,6 +28,28 @@ on the `checks` [permission].
 [github checks]: https://developer.github.com/v3/checks/
 [lint action]: https://github.com/samuelmeuli/lint-action
 [permission]: https://developer.github.com/v3/apps/permissions/#permission-on-checks
+
+## Installing
+
+Precompiled binaries are available for all releases [on GitHub]. Because they are
+static binaries, you can simply download them and run them. For example, on Linux:
+
+```bash
+curl -L https://github.com/roverdotcom/checkbridge/releases/download/v0.1.0/checkbridge-0.1.0.linux-amd64.tar.gz \
+    | tar zxf - -C /usr/local/bin
+```
+
+Would install `checkbridge` release `v0.1.0` into `/usr/local/bin/`
+
+You can also install from source if you have Go 1.11+ installed:
+
+```bash
+go get github.com/roverdotcom/checkbridge
+```
+
+This will install the tip of `master` (not recommended for production usage) into `$GOPATH/bin/`
+
+[on github]: https://github.com/roverdotcom/checkbridge/releases
 
 ## Usage
 
