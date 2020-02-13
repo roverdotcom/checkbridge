@@ -54,7 +54,7 @@ func (p parseRunner) run() {
 		os.Exit(3)
 	}
 
-	head, err := getHeadSha(p.vip, p.env)
+	head, err := getHeadSha(p.vip)
 	if err != nil {
 		logrus.WithError(err).Error("Unable to read head SHA. Cannot continue.")
 		os.Exit(3)
@@ -70,9 +70,9 @@ func (p parseRunner) run() {
 		Status:     github.CheckStatusInProgress,
 		Name:       p.name,
 		HeadSHA:    head,
-		DetailsURL: p.vip.GetString("details_url"),
+		DetailsURL: p.vip.GetString("details-url"),
 	}
-	if p.vip.GetBool("mark_in_progress") {
+	if p.vip.GetBool("mark-in-progress") {
 		logrus.Debug("Marking check as in-progress with GitHub")
 		if err := api.CreateCheck(run); err != nil {
 			logrus.WithError(err).Error("Unable to mark check as in-progress")
@@ -117,7 +117,7 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 
 	logrus.Infof("Got %d annotations", len(result.Annotations))
 
-	if p.vip.GetBool("annotate_only") {
+	if p.vip.GetBool("annotate-only") {
 		run.Conclusion = github.CheckConclusionNeutral
 	} else {
 		run.Conclusion = github.CheckConclusionFailure
@@ -129,7 +129,7 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 		return 5
 	}
 
-	if !p.vip.GetBool("exit_zero") {
+	if !p.vip.GetBool("exit-zero") {
 		logrus.Info("Exiting 1 due to issues found by tool. Pass --exit-zero to disable this behavior")
 		// Exit non-zero to mark the result of the pipeline as failed since the tool found issues with the code
 		return 1

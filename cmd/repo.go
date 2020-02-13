@@ -58,7 +58,7 @@ func repoFromPath(path string) (repo, error) {
 }
 
 func newRepo(v *viper.Viper, env func(string) string) (repo, error) {
-	passedRepo := v.GetString("github_repo")
+	passedRepo := v.GetString("github-repo")
 	if passedRepo != "" {
 		logrus.WithField("repo", passedRepo).Debug("Using repo from configuration")
 		return repoFromPath(passedRepo)
@@ -80,21 +80,11 @@ func newRepo(v *viper.Viper, env func(string) string) (repo, error) {
 	return repo{}, errors.New("missing repository configuration")
 }
 
-func getHeadSha(vip *viper.Viper, env func(string) string) (string, error) {
-	passedSha := vip.GetString("commit_sha")
+func getHeadSha(vip *viper.Viper) (string, error) {
+	passedSha := vip.GetString("commit-sha")
 	if passedSha != "" {
 		logrus.WithField("sha", passedSha).Debug("Using configured SHA")
 		return passedSha, nil
-	}
-
-	if bkSha := env("BUILDKITE_COMMIT"); bkSha != "" {
-		logrus.WithField("sha", bkSha).Debug("Using $BUILDKITE_COMMIT sha")
-		return bkSha, nil
-	}
-
-	if ghSha := env("GITHUB_SHA"); ghSha != "" {
-		logrus.WithField("sha", ghSha).Debug("Using $GITHUB_SHA sha")
-		return ghSha, nil
 	}
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	out, err := cmd.Output()
