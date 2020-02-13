@@ -85,6 +85,7 @@ func init() {
 	rootCmd.AddCommand(mypyCmd)
 	rootCmd.AddCommand(authCheckCommand)
 	rootCmd.AddCommand(regexCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 func initConfig() {
