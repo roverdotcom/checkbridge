@@ -20,6 +20,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -50,12 +52,14 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	viper.SetEnvPrefix("checkbridge")
 
+	// Application behavior flags
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolP("exit-zero", "z", false, "exit zero even when tool reports issues")
 	rootCmd.PersistentFlags().BoolP("annotate-only", "o", false, "only leave annotations, never mark check as failed")
 	rootCmd.PersistentFlags().BoolP("mark-in-progress", "m", false, "mark check as in progress before parsing")
 	rootCmd.PersistentFlags().StringP("details-url", "d", "", "details URL to send for check")
 
+	// Authentication configuration flags
 	rootCmd.PersistentFlags().IntP("application-id", "a", 0, "GitHub application ID (numeric)")
 	rootCmd.PersistentFlags().IntP("installation-id", "i", 0, "GitHub installation ID (numeric)")
 	rootCmd.PersistentFlags().StringP("private-key", "p", "", "GitHub application private key path or value")
@@ -64,29 +68,23 @@ func init() {
 	rootCmd.PersistentFlags().StringP("github-repo", "r", "", "GitHub repository (e.g. 'roverdotcom/checkbridge')")
 	rootCmd.PersistentFlags().StringP("commit-sha", "c", "", "commit SHA to report status checks for")
 
-	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
-	viper.BindPFlag("exit_zero", rootCmd.PersistentFlags().Lookup("exit-zero"))
-	viper.BindPFlag("annotate_only", rootCmd.PersistentFlags().Lookup("annotate-only"))
-	viper.BindPFlag("mark_in_progress", rootCmd.PersistentFlags().Lookup("mark-in-progress"))
-	viper.BindPFlag("details_url", rootCmd.PersistentFlags().Lookup("details-url"))
+	viper.BindPFlags(rootCmd.PersistentFlags())
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	viper.BindPFlag("application_id", rootCmd.PersistentFlags().Lookup("application-id"))
-	viper.BindPFlag("installation_id", rootCmd.PersistentFlags().Lookup("installation-id"))
-	viper.BindPFlag("private_key", rootCmd.PersistentFlags().Lookup("private-key"))
-	viper.BindPFlag("github_token", rootCmd.PersistentFlags().Lookup("github-token"))
-
-	viper.BindPFlag("github_repo", rootCmd.PersistentFlags().Lookup("github-repo"))
-	viper.BindPFlag("commit_sha", rootCmd.PersistentFlags().Lookup("commit-sha"))
-
+	// Additional environment variables
 	// Allow $GITHUB_TOKEN by convention
-	viper.BindEnv("github_token", "GITHUB_TOKEN")
+	viper.BindEnv("github-token", "GITHUB_TOKEN")
 	// Allow $GITHUB_REPOSITORY for GitHub actions
-	viper.BindEnv("github_repo", "GITHUB_REPOSITORY")
-	viper.BindEnv("details_url", "BUILDKITE_BUILD_URL")
+	viper.BindEnv("github-repo", "GITHUB_REPOSITORY")
+	viper.BindEnv("details-url", "BUILDKITE_BUILD_URL")
+	viper.BindEnv("commit-sha", "GITHUB_SHA")
+	viper.BindEnv("commit-sha", "BUILDKITE_COMMIT")
 
+	// Sub-command registration
 	rootCmd.AddCommand(golintCmd)
 	rootCmd.AddCommand(mypyCmd)
 	rootCmd.AddCommand(authCheckCommand)
+	rootCmd.AddCommand(regexCmd)
 }
 
 func initConfig() {

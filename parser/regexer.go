@@ -27,16 +27,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type annotationExtracter func(matches []string) (Annotation, error)
+// AnnotationExtracter converts regex matches to annotations
+type AnnotationExtracter func(matches []string) (Annotation, error)
 
 type regexer struct {
 	regex     *regexp.Regexp
-	extracter annotationExtracter
+	extracter AnnotationExtracter
 	reader    io.Reader
 }
 
 // NewRegexer creates a Parser from a regex and an extraction func
-func NewRegexer(regex *regexp.Regexp, extracter annotationExtracter, reader io.Reader) Parser {
+func NewRegexer(regex *regexp.Regexp, extracter AnnotationExtracter, reader io.Reader) Parser {
 	return regexer{
 		reader:    reader,
 		regex:     regex,

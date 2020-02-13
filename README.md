@@ -167,6 +167,29 @@ checkbridge check-auth \
 If it returns an error, validate you've passed the correct configuration values. If it returns
 success, you're ready to use `checkbridge`.
 
+## Available parsers
+
+Currently, `checkbridge` has builtin support for [golint] and [mypy]. In addition, it has a generic
+`regex` command, which allows you to specify a regular expression. For example:
+
+```bash
+echo "example.go:1: this is a message" | checkbridge regex \
+  --regex "(.*):(.*): (.*)" \
+  --path-pos 1 \
+  --line-pos 2 \
+  --message-pos 3
+```
+
+Note that the positions start at 1, as per convention, where the 0th element is the whole string
+match.
+
+Will create an annotation on `example.go` line 1, with the message `this is a message`.
+
+Run `checkbridge regex --help` to see all the available configuration options.
+
+[golint]: https://github.com/golang/lint
+[mypy]: https://mypy.readthedocs.io/
+
 ## Development
 
 This section is intended for developers of this tool.

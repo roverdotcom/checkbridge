@@ -42,7 +42,7 @@ func (e envStub) get(key string) string {
 
 func TestNewRepo_FromGithub(t *testing.T) {
 	vip := viper.New()
-	vip.Set("github_repo", "foo/bar")
+	vip.Set("github-repo", "foo/bar")
 	repo, err := newRepo(vip, envStub{}.get)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", repo.owner)
@@ -81,7 +81,7 @@ func TestNewRepo_EmptyBK(t *testing.T) {
 func TestNewRepo_FromViper(t *testing.T) {
 	env := envStub{}
 	vip := viper.New()
-	vip.Set("github_repo", "foo/bar")
+	vip.Set("github-repo", "foo/bar")
 
 	repo, err := newRepo(vip, env.get)
 	require.NoError(t, err)
@@ -90,31 +90,10 @@ func TestNewRepo_FromViper(t *testing.T) {
 }
 
 func TestGetHeadSha_FromViper(t *testing.T) {
-	env := envStub{}
 	vip := viper.New()
-	vip.Set("commit_sha", "my-sha")
+	vip.Set("commit-sha", "my-sha")
 
-	sha, err := getHeadSha(vip, env.get)
+	sha, err := getHeadSha(vip)
 	require.NoError(t, err)
 	assert.Equal(t, "my-sha", sha)
-}
-
-func TestGetHeadSha_FromBK(t *testing.T) {
-	env := envStub{
-		"BUILDKITE_COMMIT",
-		"my-bk-head",
-	}
-	sha, err := getHeadSha(viper.New(), env.get)
-	require.NoError(t, err)
-	assert.Equal(t, "my-bk-head", sha)
-}
-
-func TestGetHeadSha_FromGitHub(t *testing.T) {
-	env := envStub{
-		"GITHUB_SHA",
-		"my-gh-head",
-	}
-	sha, err := getHeadSha(viper.New(), env.get)
-	require.NoError(t, err)
-	assert.Equal(t, "my-gh-head", sha)
 }

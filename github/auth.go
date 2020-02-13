@@ -75,12 +75,12 @@ func (g githubAuth) readPrivateKey(pathOrKey string) (*rsa.PrivateKey, error) {
 }
 
 func (g githubAuth) makeJWT() (string, error) {
-	applicationID := g.config.GetString("application_id")
+	applicationID := g.config.GetString("application-id")
 	if applicationID == "0" || applicationID == "" {
 		return "", errors.New("no application ID provided")
 	}
 
-	privateKey := g.config.GetString("private_key")
+	privateKey := g.config.GetString("private-key")
 	if privateKey == "" {
 		return "", errors.New("no private key provided")
 	}
@@ -103,7 +103,7 @@ func (g githubAuth) makeJWT() (string, error) {
 }
 
 func (g githubAuth) GetToken(r Repo, perms map[string]string) (string, error) {
-	if token := g.config.GetString("github_token"); token != "" {
+	if token := g.config.GetString("github-token"); token != "" {
 		logrus.Debug("Using explicit GitHub token, skipping JWT exchange")
 		return token, nil
 	}
@@ -114,7 +114,7 @@ func (g githubAuth) GetToken(r Repo, perms map[string]string) (string, error) {
 	}
 	logrus.WithField("jwt", appJWT).Debug("Got JWT")
 
-	installationID := g.config.GetString("installation_id")
+	installationID := g.config.GetString("installation-id")
 	tc := tokenClient{
 		client: client{
 			authToken: appJWT,

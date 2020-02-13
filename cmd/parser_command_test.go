@@ -54,7 +54,7 @@ func TestAPIClient_NoToken(t *testing.T) {
 
 func TestAPIClient_ValidToken(t *testing.T) {
 	vip := viper.New()
-	vip.Set("github_token", "token")
+	vip.Set("github-token", "token")
 	r := environment{
 		vip: vip,
 	}
@@ -90,7 +90,7 @@ func TestReportResults_WithViolations(t *testing.T) {
 
 func TestReportResults_WithViolations_ExitZero(t *testing.T) {
 	vip := viper.New()
-	vip.Set("exit_zero", true)
+	vip.Set("exit-zero", true)
 	api := &stubClient{}
 	result := parser.Result{
 		Annotations: []parser.Annotation{{}},
@@ -106,7 +106,7 @@ func TestReportResults_WithViolations_ExitZero(t *testing.T) {
 
 func TestReportResults_WithViolations_AnnotateOnly(t *testing.T) {
 	vip := viper.New()
-	vip.Set("annotate_only", true)
+	vip.Set("annotate-only", true)
 	api := &stubClient{}
 	result := parser.Result{
 		Annotations: []parser.Annotation{{}},

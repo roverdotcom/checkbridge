@@ -35,7 +35,7 @@ import (
 func TestGithubAuth_GetTokenFromEnv(t *testing.T) {
 	vip := viper.New()
 	mytoken := "mytoken"
-	vip.Set("github_token", mytoken)
+	vip.Set("github-token", mytoken)
 	auth := NewAuthProvider(vip)
 
 	token, err := auth.GetToken(dummyRepo{}, map[string]string{})
@@ -62,7 +62,7 @@ func TestMakeJWT_NoAppId(t *testing.T) {
 
 func TestMakeJWT_NoPrivateKey(t *testing.T) {
 	conf := viper.New()
-	conf.Set("application_id", "42")
+	conf.Set("application-id", "42")
 	gh := githubAuth{
 		config: conf,
 	}
@@ -72,8 +72,8 @@ func TestMakeJWT_NoPrivateKey(t *testing.T) {
 }
 func TestMakeJWT_InvalidPrivateKey(t *testing.T) {
 	conf := viper.New()
-	conf.Set("application_id", "42")
-	conf.Set("private_key", "bad/path/to/pem")
+	conf.Set("application-id", "42")
+	conf.Set("private-key", "bad/path/to/pem")
 	gh := githubAuth{
 		config: conf,
 	}
@@ -87,8 +87,8 @@ const testPrivateKey = "testdata/key.pem"
 func TestMakeJWT_OK(t *testing.T) {
 	appID := "42"
 	conf := viper.New()
-	conf.Set("application_id", appID)
-	conf.Set("private_key", testPrivateKey)
+	conf.Set("application-id", appID)
+	conf.Set("private-key", testPrivateKey)
 	gh := githubAuth{
 		config: conf,
 	}
@@ -130,8 +130,8 @@ func TestGetToken_EndToEnd(t *testing.T) {
 	defer server.Close()
 
 	vip := viper.New()
-	vip.Set("private_key", testPrivateKey)
-	vip.Set("application_id", "my-id")
+	vip.Set("private-key", testPrivateKey)
+	vip.Set("application-id", "my-id")
 	gh := githubAuth{
 		config:  vip,
 		apiBase: server.URL,
