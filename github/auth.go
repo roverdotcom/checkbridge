@@ -50,7 +50,6 @@ type githubAuth struct {
 	apiBase string
 }
 
-// NewAuthProvider creates an auth provider from the given environment
 func NewAuthProvider(c ConfigProvider) AuthProvider {
 	return githubAuth{
 		config:  c,
