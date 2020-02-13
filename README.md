@@ -109,7 +109,7 @@ The following flags can be configured, but are not required by default.
 
 `--commit-sha` will be read from `$GITHUB_SHA`, `$BUILDKITE_COMMIT`, or `$(git rev-parse HEAD)`
 
-`--github-repo` will be read from `$GITHUB_REPO` or `$BUILDKITE_REPOSITORY` if present
+`--github-repo` will be read from `$GITHUB_REPOSITORY` or `$BUILDKITE_REPO` if present
 
 `--github-token` will be read from `$GITHUB_TOKEN` if present (i.e. when run via GitHub actions)
 
