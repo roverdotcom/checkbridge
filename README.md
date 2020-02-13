@@ -51,9 +51,10 @@ This will install the tip of `master` (not recommended for production usage) int
 
 ## Usage
 
-`checkbridge` requires GitHub credentials to report checks. Read through the [configuration]
-and [authentication] sections to see get started. Once configured, you can create checks by
-piping your desired tool into a `checkbridge` subcommand. For example:
+`checkbridge` requires GitHub credentials to report checks. Read through the
+[configuration] and [authentication] sections to get started. Once configured,
+you can create checks by piping your desired tool into a `checkbridge`
+subcommand. For example:
 
 ```bash
 golint ./... | checkbridge golint
