@@ -176,6 +176,7 @@ following would create an annotation on `example.go` line `1`, with the message 
 ```bash
 echo "example.go:1: this is a message" | checkbridge regex \
   --regex "(.*):(.*): (.*)" \
+  --name "my custom linter" \
   --path-pos 1 \
   --line-pos 2 \
   --message-pos 3
