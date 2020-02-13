@@ -170,7 +170,8 @@ success, you're ready to use `checkbridge`.
 ## Available parsers
 
 Currently, `checkbridge` has builtin support for [golint] and [mypy]. In addition, it has a generic
-`regex` command, which allows you to specify a regular expression. For example:
+`regex` command, which allows you to specify a regular expression. For example, running the
+following would create an annotation on `example.go` line `1`, with the message `this is a message`.
 
 ```bash
 echo "example.go:1: this is a message" | checkbridge regex \
@@ -182,8 +183,6 @@ echo "example.go:1: this is a message" | checkbridge regex \
 
 Note that the positions start at 1, as per convention, where the 0th element is the whole string
 match.
-
-Will create an annotation on `example.go` line 1, with the message `this is a message`.
 
 Run `checkbridge regex --help` to see all the available configuration options.
 
