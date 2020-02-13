@@ -177,9 +177,9 @@ func summarizeResult(result parser.Result) string {
 
 	for _, a := range result.Annotations {
 		if a.Level == parser.LevelWarning {
-			warningCount += 1
+			warningCount++
 		} else if a.Level == parser.LevelError {
-			errorCount += 1
+			errorCount++
 		}
 	}
 	if errorCount > 0 {
