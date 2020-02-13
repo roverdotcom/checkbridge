@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"unicode"
 
 	"github.com/roverdotcom/checkbridge/github"
 	"github.com/roverdotcom/checkbridge/parser"
@@ -85,8 +86,11 @@ func (p parseRunner) run() {
 
 	result, err := p.parse.Run()
 	if err != nil {
-		logrus.WithError(err).Errorf("Error parsing %s results", p.name)
+		errorMessage := fmt.Sprintf("Error parsing %s results", p.name)
+		logrus.WithError(err).Error(errorMessage)
 		run.Conclusion = github.CheckConclusionFailure
+		run.Output.Title = errorMessage
+		run.Output.Summary = err.Error()
 
 		if err := api.CreateCheck(run); err != nil {
 			logrus.WithError(err).Error("Unable to create GitHub check for parse failure")
@@ -95,16 +99,22 @@ func (p parseRunner) run() {
 		os.Exit(3)
 	}
 
-	run.Output.Summary = fmt.Sprintf("%s completed", p.name)
-	run.Output.Title = p.name
-
 	if code := p.reportResults(run, result, api); code != 0 {
 		os.Exit(code)
 	}
 }
 
 func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, api github.CheckClient) int {
-	if len(result.Annotations) == 0 {
+	run.Output = result
+	summary := summarizeResult(result)
+	if run.Output.Summary == "" {
+		run.Output.Summary = fmt.Sprintf("%s found %s", p.name, summary)
+	}
+	if run.Output.Title == "" {
+		run.Output.Title = capitalizeFirstChar(summary)
+	}
+
+	if len(run.Output.Annotations) == 0 {
 		logrus.Infof("No violations reported from %s", p.name)
 		run.Conclusion = github.CheckConclusionSuccess
 		if err := api.CreateCheck(run); err != nil {
@@ -122,7 +132,6 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 	} else {
 		run.Conclusion = github.CheckConclusionFailure
 	}
-	run.Output = result
 
 	if err := api.CreateCheck(run); err != nil {
 		logrus.WithError(err).Error("Unable to create GitHub check")
@@ -134,9 +143,9 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 		// Exit non-zero to mark the result of the pipeline as failed since the tool found issues with the code
 		return 1
 	}
+
 	logrus.Debug("Successfully reported checks, exiting 0 at user request")
 	return 0
-
 }
 
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
@@ -152,4 +161,45 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 		}
 		runner.run()
 	}
+}
+
+func capitalizeFirstChar(str string) string {
+	for i, v := range str {
+		return string(unicode.ToUpper(v)) + str[i+1:]
+	}
+	return ""
+}
+
+func summarizeResult(result parser.Result) string {
+	errorCount := 0
+	warningCount := 0
+	summary := "no issues"
+
+	for _, a := range result.Annotations {
+		if a.Level == parser.LevelWarning {
+			warningCount++
+		} else if a.Level == parser.LevelError {
+			errorCount++
+		}
+	}
+	if errorCount > 0 {
+		summary = fmt.Sprintf("%d %s", errorCount, pluralize("error", errorCount))
+	}
+	if warningCount > 0 {
+		warningMessage := fmt.Sprintf("%d %s", warningCount, pluralize("warning", warningCount))
+		if errorCount > 0 {
+			summary = fmt.Sprintf("%s and %s", summary, warningMessage)
+		} else {
+			summary = warningMessage
+		}
+	}
+
+	return summary
+}
+
+func pluralize(noun string, count int) string {
+	if count > 1 {
+		return noun + "s"
+	}
+	return noun
 }

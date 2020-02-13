@@ -132,3 +132,42 @@ func TestReportResults_GitHubError(t *testing.T) {
 
 	assert.Equal(t, code, 5)
 }
+
+func TestSummaryResult_NoIssues(t *testing.T) {
+	result := parser.Result{}
+	assert.Equal(t, "no issues", summarizeResult(result))
+}
+
+func TestSummaryResult_TwoErrors(t *testing.T) {
+	result := parser.Result{
+		Annotations: []parser.Annotation{
+			{Level: parser.LevelError},
+			{Level: parser.LevelError},
+		},
+	}
+	assert.Equal(t, "2 errors", summarizeResult(result))
+}
+
+func TestSummaryResult_OneOfEach(t *testing.T) {
+	result := parser.Result{
+		Annotations: []parser.Annotation{
+			{Level: parser.LevelError},
+			{Level: parser.LevelWarning},
+		},
+	}
+	assert.Equal(t, "1 error and 1 warning", summarizeResult(result))
+}
+
+func TestSummaryResult_TwoWarnings(t *testing.T) {
+	result := parser.Result{
+		Annotations: []parser.Annotation{
+			{Level: parser.LevelWarning},
+			{Level: parser.LevelWarning},
+		},
+	}
+	assert.Equal(t, "2 warnings", summarizeResult(result))
+}
+
+func TestCapitalizeFirstChar_TwoWords(t *testing.T) {
+	assert.Equal(t, "No issues", capitalizeFirstChar("no issues"))
+}
