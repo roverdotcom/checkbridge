@@ -73,3 +73,9 @@ func TestRegexExtractor_Line(t *testing.T) {
 	_, err := extractor([]string{""})
 	require.Error(t, err)
 }
+
+func TestRunRegex_BadRegex(t *testing.T) {
+	vip := viper.New()
+	vip.Set("regex", "[")
+	assert.Equal(t, 2, runRegexCommand(vip, nil))
+}

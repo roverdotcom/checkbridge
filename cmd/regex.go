@@ -21,6 +21,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -36,23 +37,28 @@ var regexCmd = &cobra.Command{
 	Use:   "regex",
 	Short: "Parse results via regular expression",
 	Run: func(cmd *cobra.Command, args []string) {
-		vip := viper.GetViper()
-		configureLogging(vip)
-		regex, err := regexp.Compile(vip.GetString("regex"))
-		if err != nil {
-			logrus.WithError(err).Error("Unable to compile regular expression")
-			os.Exit(2)
+		if code := runRegexCommand(viper.GetViper(), os.Stdin); code != 0 {
+			os.Exit(code)
 		}
-		extractor := makeExtractor(vip)
-		parse := parser.NewRegexer(regex, extractor, os.Stdin)
-
-		runner := parseRunner{
-			environment: newEnvironment(vip, os.Getenv),
-			name:        vip.GetString("name"),
-			parse:       parse,
-		}
-		runner.run()
 	},
+}
+
+func runRegexCommand(vip *viper.Viper, stdin io.Reader) int {
+	configureLogging(vip)
+	regex, err := regexp.Compile(vip.GetString("regex"))
+	if err != nil {
+		logrus.WithError(err).Error("Unable to compile regular expression")
+		return 2
+	}
+	extractor := makeExtractor(vip)
+	parse := parser.NewRegexer(regex, extractor, stdin)
+
+	runner := parseRunner{
+		environment: newEnvironment(vip, os.Getenv),
+		name:        vip.GetString("name"),
+		parse:       parse,
+	}
+	return runner.run()
 }
 
 func init() {
