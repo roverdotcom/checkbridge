@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"os/exec"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -104,4 +105,14 @@ func TestGetHeadSha_FromViper(t *testing.T) {
 	sha, err := getHeadSha(vip)
 	require.NoError(t, err)
 	assert.Equal(t, "my-sha", sha)
+}
+
+func TestGetHeadSha_FromExec(t *testing.T) {
+	_, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("git unavailable")
+	}
+	sha, err := getHeadSha(viper.New())
+	require.NoError(t, err)
+	assert.NotEmpty(t, sha)
 }
