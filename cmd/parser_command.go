@@ -46,34 +46,34 @@ type parseRunner struct {
 	parse parser.Parser
 }
 
-func (p parseRunner) run() {
-	configureLogging(p.vip)
+func (p parseRunner) run() int {
+	configureLogging(p.vip())
 
-	repo, err := newRepo(p.vip, p.env)
+	repo, err := newRepo(p.vip(), p.env)
 	if err != nil {
 		logrus.WithError(err).Error("Unable to determine repository")
-		os.Exit(3)
+		return 3
 	}
 
-	head, err := getHeadSha(p.vip)
+	head, err := getHeadSha(p.vip())
 	if err != nil {
 		logrus.WithError(err).Error("Unable to read head SHA. Cannot continue.")
-		os.Exit(3)
+		return 3
 	}
 
 	api, err := p.apiClient(repo)
 	if err != nil {
 		logrus.WithError(err).Error("Unable to get GitHub token")
-		os.Exit(4)
+		return 4
 	}
 
 	run := github.CheckRun{
 		Status:     github.CheckStatusInProgress,
 		Name:       p.name,
 		HeadSHA:    head,
-		DetailsURL: p.vip.GetString("details-url"),
+		DetailsURL: p.vip().GetString("details-url"),
 	}
-	if p.vip.GetBool("mark-in-progress") {
+	if p.vip().GetBool("mark-in-progress") {
 		logrus.Debug("Marking check as in-progress with GitHub")
 		if err := api.CreateCheck(run); err != nil {
 			logrus.WithError(err).Error("Unable to mark check as in-progress")
@@ -96,12 +96,10 @@ func (p parseRunner) run() {
 			logrus.WithError(err).Error("Unable to create GitHub check for parse failure")
 		}
 		logrus.Info("Created GitHub check as failure for parse error")
-		os.Exit(3)
+		return 3
 	}
 
-	if code := p.reportResults(run, result, api); code != 0 {
-		os.Exit(code)
-	}
+	return p.reportResults(run, result, api)
 }
 
 func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, api github.CheckClient) int {
@@ -127,7 +125,7 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 
 	logrus.Infof("Got %d annotations", len(result.Annotations))
 
-	if p.vip.GetBool("annotate-only") {
+	if p.vip().GetBool("annotate-only") {
 		run.Conclusion = github.CheckConclusionNeutral
 	} else {
 		run.Conclusion = github.CheckConclusionFailure
@@ -138,7 +136,7 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 		return 5
 	}
 
-	if !p.vip.GetBool("exit-zero") {
+	if !p.vip().GetBool("exit-zero") {
 		logrus.Info("Exiting 1 due to issues found by tool. Pass --exit-zero to disable this behavior")
 		// Exit non-zero to mark the result of the pipeline as failed since the tool found issues with the code
 		return 1
@@ -152,14 +150,13 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 	return func(cmd *cobra.Command, args []string) {
 		parse := pfunc(os.Stdin)
 		runner := parseRunner{
-			environment: environment{
-				vip: viper.GetViper(),
-				env: os.Getenv,
-			},
-			name:  name,
-			parse: parse,
+			environment: newEnvironment(viper.GetViper(), os.Getenv),
+			name:        name,
+			parse:       parse,
 		}
-		runner.run()
+		if code := runner.run(); code != 0 {
+			os.Exit(code)
+		}
 	}
 }
 

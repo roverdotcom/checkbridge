@@ -41,10 +41,7 @@ var authCheckCommand = &cobra.Command{
 }
 
 func runAuthCheck(vip *viper.Viper, env func(string) string) error {
-	e := environment{
-		vip: vip,
-		env: env,
-	}
+	e := newEnvironment(vip, env)
 	repo, err := newRepo(vip, os.Getenv)
 	if err != nil {
 		return err
