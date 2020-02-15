@@ -44,7 +44,7 @@ func (s *stubClient) CreateCheck(check github.CheckRun) error {
 }
 
 type stubEnv struct {
-	concreteEnv
+	environment
 
 	sc    *stubClient
 	token *string
@@ -65,9 +65,7 @@ func (s stubEnv) githubToken(_ repo) (string, error) {
 }
 
 func TestAPIClient_NoToken(t *testing.T) {
-	r := concreteEnv{
-		v: viper.New(),
-	}
+	r := newEnvironment(viper.New())
 
 	_, err := r.apiClient(repo{})
 	assert.Error(t, err)
@@ -76,9 +74,7 @@ func TestAPIClient_NoToken(t *testing.T) {
 func TestAPIClient_ValidToken(t *testing.T) {
 	vip := viper.New()
 	vip.Set("github-token", "token")
-	r := concreteEnv{
-		v: vip,
-	}
+	r := newEnvironment(vip)
 
 	_, err := r.apiClient(repo{})
 	assert.NoError(t, err)
@@ -86,10 +82,7 @@ func TestAPIClient_ValidToken(t *testing.T) {
 
 func TestParseRunnerRun_NoRepo(t *testing.T) {
 	p := parseRunner{
-		environment: concreteEnv{
-			v: viper.New(),
-			e: envStub{}.get,
-		},
+		environment: newEnvironment(viper.New()),
 	}
 	assert.Equal(t, 3, p.run())
 }
@@ -101,10 +94,7 @@ func TestParseRunnerRun_BadPrivateKey(t *testing.T) {
 	vip.Set("private-key", "non/existent/path.pem")
 
 	p := parseRunner{
-		environment: concreteEnv{
-			v: vip,
-			e: envStub{}.get,
-		},
+		environment: newEnvironment(vip),
 	}
 
 	assert.Equal(t, 4, p.run())
@@ -119,7 +109,7 @@ func (s stubParser) Run() (parser.Result, error) {
 	return s.r, s.err
 }
 
-func fakeRepoConfig() *viper.Viper {
+func fakeRepoConfig() config {
 	vip := viper.New()
 	vip.Set("commit-sha", "fake-sha")
 	vip.Set("github-repo", "ghost/example")
@@ -139,11 +129,8 @@ func TestParseRunnerRun_ErrorSendingCheck(t *testing.T) {
 
 	p := parseRunner{
 		environment: stubEnv{
-			concreteEnv: concreteEnv{
-				v: vip,
-				e: envStub{}.get,
-			},
-			sc: &sc,
+			environment: newEnvironment(vip),
+			sc:          &sc,
 		},
 		parse: stubParser{},
 	}
@@ -158,11 +145,8 @@ func TestParseRunnerRun_ErrorParsingResult(t *testing.T) {
 
 	p := parseRunner{
 		environment: stubEnv{
-			concreteEnv: concreteEnv{
-				v: vip,
-				e: envStub{}.get,
-			},
-			sc: &sc,
+			environment: newEnvironment(vip),
+			sc:          &sc,
 		},
 		parse: stubParser{
 			err: errors.New("can't parse this"),
@@ -191,7 +175,7 @@ func TestReportResults_WithViolations(t *testing.T) {
 			Path: "main.go",
 		}},
 	}
-	e := concreteEnv{v: viper.GetViper()}
+	e := newEnvironment(viper.New())
 	p := parseRunner{environment: e}
 	code := p.reportResults(github.CheckRun{}, result, api)
 
@@ -207,7 +191,7 @@ func TestReportResults_WithViolations_ExitZero(t *testing.T) {
 		Annotations: []parser.Annotation{{}},
 	}
 	p := parseRunner{
-		environment: concreteEnv{v: vip},
+		environment: newEnvironment(vip),
 	}
 	code := p.reportResults(github.CheckRun{}, result, api)
 
@@ -223,7 +207,7 @@ func TestReportResults_WithViolations_AnnotateOnly(t *testing.T) {
 		Annotations: []parser.Annotation{{}},
 	}
 	p := parseRunner{
-		environment: concreteEnv{v: vip},
+		environment: newEnvironment(vip),
 	}
 	p.reportResults(github.CheckRun{}, result, api)
 

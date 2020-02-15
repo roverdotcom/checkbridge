@@ -54,7 +54,7 @@ func runRegexCommand(vip *viper.Viper, stdin io.Reader) int {
 	parse := parser.NewRegexer(regex, extractor, stdin)
 
 	runner := parseRunner{
-		environment: newEnvironment(vip, os.Getenv),
+		environment: newEnvironment(vip),
 		name:        vip.GetString("name"),
 		parse:       parse,
 	}

@@ -27,7 +27,7 @@ import (
 )
 
 func TestRunAuthCheck_NoData(t *testing.T) {
-	err := runAuthCheck(viper.New(), envStub{}.get)
+	err := runAuthCheck(viper.New())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "missin")
 }
@@ -36,6 +36,6 @@ func TestRunAuthCheck_WithPresetToken(t *testing.T) {
 	vip := viper.New()
 	vip.Set("github-token", "fake-token")
 	vip.Set("github-repo", "foo/bar")
-	err := runAuthCheck(vip, envStub{}.get)
+	err := runAuthCheck(vip)
 	assert.NoError(t, err)
 }

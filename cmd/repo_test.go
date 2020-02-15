@@ -29,22 +29,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type envStub struct {
-	key   string
-	value string
-}
-
-func (e envStub) get(key string) string {
-	if key == e.key {
-		return e.value
-	}
-	return ""
-}
-
 func TestNewRepo_MalformedRepo(t *testing.T) {
 	vip := viper.New()
 	vip.Set("github-repo", "foo-bar.git")
-	_, err := newRepo(vip, envStub{}.get)
+	_, err := newRepo(vip)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "malformed")
 }
@@ -52,47 +40,40 @@ func TestNewRepo_MalformedRepo(t *testing.T) {
 func TestNewRepo_FromGithub(t *testing.T) {
 	vip := viper.New()
 	vip.Set("github-repo", "foo/bar")
-	repo, err := newRepo(vip, envStub{}.get)
+	repo, err := newRepo(vip)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", repo.owner)
 	assert.Equal(t, "bar", repo.name)
 }
 
 func TestNewRepo_FromBuildKite(t *testing.T) {
-	env := envStub{
-		"BUILDKITE_REPO",
-		"git@github.com:org/with-dashes.git",
-	}
-	repo, err := newRepo(viper.New(), env.get)
+	vip := viper.New()
+	vip.Set("buildkite-repo", "git@github.com:org/with-dashes.git")
+	repo, err := newRepo(vip)
 	require.NoError(t, err)
 	assert.Equal(t, "org", repo.owner)
 	assert.Equal(t, "with-dashes", repo.name)
 }
 
 func TestNewRepo_MalformedBK(t *testing.T) {
-	env := envStub{
-		"BUILDKITE_REPO",
-		"ssh://github.com:org|with-dashes.git",
-	}
-	_, err := newRepo(viper.New(), env.get)
+	vip := viper.New()
+	vip.Set("buildkite-repo", "ssh://github.com:org|with-dashes.git")
+	_, err := newRepo(vip)
 	assert.Error(t, err)
 }
 
 func TestNewRepo_EmptyBK(t *testing.T) {
-	env := envStub{
-		"BUILDKITE_REPO",
-		"",
-	}
-	_, err := newRepo(viper.New(), env.get)
+	vip := viper.New()
+	vip.Set("buildkite-repo", "")
+	_, err := newRepo(vip)
 	assert.Error(t, err)
 }
 
 func TestNewRepo_FromViper(t *testing.T) {
-	env := envStub{}
 	vip := viper.New()
 	vip.Set("github-repo", "foo/bar")
 
-	repo, err := newRepo(vip, env.get)
+	repo, err := newRepo(vip)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", repo.owner)
 	assert.Equal(t, "bar", repo.name)
