@@ -43,9 +43,30 @@ func (s *stubClient) CreateCheck(check github.CheckRun) error {
 	return nil
 }
 
+type stubEnv struct {
+	concreteEnv
+
+	sc    *stubClient
+	token *string
+}
+
+func (s stubEnv) apiClient(_ repo) (github.CheckClient, error) {
+	if s.sc != nil {
+		return s.sc, nil
+	}
+	return nil, errors.New("stub client missing")
+}
+
+func (s stubEnv) githubToken(_ repo) (string, error) {
+	if s.token != nil {
+		return *s.token, nil
+	}
+	return "", errors.New("no token")
+}
+
 func TestAPIClient_NoToken(t *testing.T) {
-	r := environment{
-		vip: viper.New(),
+	r := concreteEnv{
+		v: viper.New(),
 	}
 
 	_, err := r.apiClient(repo{})
@@ -55,12 +76,102 @@ func TestAPIClient_NoToken(t *testing.T) {
 func TestAPIClient_ValidToken(t *testing.T) {
 	vip := viper.New()
 	vip.Set("github-token", "token")
-	r := environment{
-		vip: vip,
+	r := concreteEnv{
+		v: vip,
 	}
 
 	_, err := r.apiClient(repo{})
 	assert.NoError(t, err)
+}
+
+func TestParseRunnerRun_NoRepo(t *testing.T) {
+	p := parseRunner{
+		environment: concreteEnv{
+			v: viper.New(),
+			e: envStub{}.get,
+		},
+	}
+	assert.Equal(t, 3, p.run())
+}
+
+func TestParseRunnerRun_BadPrivateKey(t *testing.T) {
+	vip := viper.New()
+	vip.Set("commit-sha", "fake-sha")
+	vip.Set("github-repo", "ghost/example")
+	vip.Set("private-key", "non/existent/path.pem")
+
+	p := parseRunner{
+		environment: concreteEnv{
+			v: vip,
+			e: envStub{}.get,
+		},
+	}
+
+	assert.Equal(t, 4, p.run())
+}
+
+type stubParser struct {
+	r   parser.Result
+	err error
+}
+
+func (s stubParser) Run() (parser.Result, error) {
+	return s.r, s.err
+}
+
+func fakeRepoConfig() *viper.Viper {
+	vip := viper.New()
+	vip.Set("commit-sha", "fake-sha")
+	vip.Set("github-repo", "ghost/example")
+	vip.Set("github-token", "fake-token")
+	vip.Set("mark-in-progress", true)
+
+	return vip
+}
+
+func TestParseRunnerRun_ErrorSendingCheck(t *testing.T) {
+	vip := fakeRepoConfig()
+
+	err := errors.New("tubes are clogged")
+	sc := stubClient{
+		err: &err,
+	}
+
+	p := parseRunner{
+		environment: stubEnv{
+			concreteEnv: concreteEnv{
+				v: vip,
+				e: envStub{}.get,
+			},
+			sc: &sc,
+		},
+		parse: stubParser{},
+	}
+
+	assert.Equal(t, 5, p.run())
+}
+
+func TestParseRunnerRun_ErrorParsingResult(t *testing.T) {
+	vip := fakeRepoConfig()
+
+	sc := stubClient{}
+
+	p := parseRunner{
+		environment: stubEnv{
+			concreteEnv: concreteEnv{
+				v: vip,
+				e: envStub{}.get,
+			},
+			sc: &sc,
+		},
+		parse: stubParser{
+			err: errors.New("can't parse this"),
+		},
+	}
+
+	assert.Equal(t, 3, p.run())
+	assert.Equal(t, github.CheckConclusionFailure, sc.reportedCheck.Conclusion)
+	assert.Equal(t, "can't parse this", sc.reportedCheck.Output.Summary)
 }
 
 func TestReportResults_NoViolations(t *testing.T) {
@@ -80,7 +191,7 @@ func TestReportResults_WithViolations(t *testing.T) {
 			Path: "main.go",
 		}},
 	}
-	e := environment{vip: viper.GetViper()}
+	e := concreteEnv{v: viper.GetViper()}
 	p := parseRunner{environment: e}
 	code := p.reportResults(github.CheckRun{}, result, api)
 
@@ -96,7 +207,7 @@ func TestReportResults_WithViolations_ExitZero(t *testing.T) {
 		Annotations: []parser.Annotation{{}},
 	}
 	p := parseRunner{
-		environment: environment{vip: vip},
+		environment: concreteEnv{v: vip},
 	}
 	code := p.reportResults(github.CheckRun{}, result, api)
 
@@ -112,7 +223,7 @@ func TestReportResults_WithViolations_AnnotateOnly(t *testing.T) {
 		Annotations: []parser.Annotation{{}},
 	}
 	p := parseRunner{
-		environment: environment{vip: vip},
+		environment: concreteEnv{v: vip},
 	}
 	p.reportResults(github.CheckRun{}, result, api)
 
@@ -126,7 +237,7 @@ func TestReportResults_GitHubError(t *testing.T) {
 	}
 	result := parser.Result{}
 	p := parseRunner{
-		environment: environment{},
+		environment: concreteEnv{},
 	}
 	code := p.reportResults(github.CheckRun{}, result, api)
 

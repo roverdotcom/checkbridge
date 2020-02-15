@@ -47,12 +47,9 @@ var regexCmd = &cobra.Command{
 		parse := parser.NewRegexer(regex, extractor, os.Stdin)
 
 		runner := parseRunner{
-			environment: environment{
-				vip: viper.GetViper(),
-				env: os.Getenv,
-			},
-			name:  vip.GetString("name"),
-			parse: parse,
+			environment: newEnvironment(vip, os.Getenv),
+			name:        vip.GetString("name"),
+			parse:       parse,
 		}
 		runner.run()
 	},

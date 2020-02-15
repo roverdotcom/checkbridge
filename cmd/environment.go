@@ -26,18 +26,40 @@ import (
 	"github.com/spf13/viper"
 )
 
-type environment struct {
-	vip *viper.Viper
-	env func(string) string
+type environment interface {
+	vip() *viper.Viper
+	env(string) string
+	githubToken(repo) (string, error)
+	apiClient(repo) (github.CheckClient, error)
 }
 
-func (e environment) githubToken(repo repo) (string, error) {
-	auth := github.NewAuthProvider(e.vip)
+func newEnvironment(vip *viper.Viper, env func(string) string) environment {
+	return concreteEnv{
+		v: vip,
+		e: env,
+	}
+}
+
+type concreteEnv struct {
+	v *viper.Viper
+	e func(string) string
+}
+
+func (ce concreteEnv) vip() *viper.Viper {
+	return ce.v
+}
+
+func (ce concreteEnv) env(key string) string {
+	return ce.e(key)
+}
+
+func (ce concreteEnv) githubToken(repo repo) (string, error) {
+	auth := github.NewAuthProvider(ce.v)
 	return auth.GetToken(repo, defaultPerms)
 }
 
-func (e environment) apiClient(repo repo) (github.CheckClient, error) {
-	token, err := e.githubToken(repo)
+func (ce concreteEnv) apiClient(repo repo) (github.CheckClient, error) {
+	token, err := ce.githubToken(repo)
 	if err != nil {
 		return nil, err
 	}
