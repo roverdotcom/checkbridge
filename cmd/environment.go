@@ -23,38 +23,38 @@ package cmd
 import (
 	"github.com/roverdotcom/checkbridge/github"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
+// config is an interface over *viper.Viper
+type config interface {
+	GetString(string) string
+	GetBool(string) bool
+}
+
+// environment hadles fetching configuration for an environment,
+// made an interface for easier testing
 type environment interface {
-	vip() *viper.Viper
-	env(string) string
+	config() config
 	githubToken(repo) (string, error)
 	apiClient(repo) (github.CheckClient, error)
 }
 
-func newEnvironment(vip *viper.Viper, env func(string) string) environment {
+func newEnvironment(c config) environment {
 	return concreteEnv{
-		v: vip,
-		e: env,
+		c: c,
 	}
 }
 
 type concreteEnv struct {
-	v *viper.Viper
-	e func(string) string
+	c config
 }
 
-func (ce concreteEnv) vip() *viper.Viper {
-	return ce.v
-}
-
-func (ce concreteEnv) env(key string) string {
-	return ce.e(key)
+func (ce concreteEnv) config() config {
+	return ce.c
 }
 
 func (ce concreteEnv) githubToken(repo repo) (string, error) {
-	auth := github.NewAuthProvider(ce.v)
+	auth := github.NewAuthProvider(ce.c)
 	return auth.GetToken(repo, defaultPerms)
 }
 

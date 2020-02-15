@@ -47,15 +47,15 @@ type parseRunner struct {
 }
 
 func (p parseRunner) run() int {
-	configureLogging(p.vip())
+	configureLogging(p.config())
 
-	repo, err := newRepo(p.vip(), p.env)
+	repo, err := newRepo(p.config())
 	if err != nil {
 		logrus.WithError(err).Error("Unable to determine repository")
 		return 3
 	}
 
-	head, err := getHeadSha(p.vip())
+	head, err := getHeadSha(p.config())
 	if err != nil {
 		logrus.WithError(err).Error("Unable to read head SHA. Cannot continue.")
 		return 3
@@ -71,9 +71,9 @@ func (p parseRunner) run() int {
 		Status:     github.CheckStatusInProgress,
 		Name:       p.name,
 		HeadSHA:    head,
-		DetailsURL: p.vip().GetString("details-url"),
+		DetailsURL: p.config().GetString("details-url"),
 	}
-	if p.vip().GetBool("mark-in-progress") {
+	if p.config().GetBool("mark-in-progress") {
 		logrus.Debug("Marking check as in-progress with GitHub")
 		if err := api.CreateCheck(run); err != nil {
 			logrus.WithError(err).Error("Unable to mark check as in-progress")
@@ -125,7 +125,7 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 
 	logrus.Infof("Got %d annotations", len(result.Annotations))
 
-	if p.vip().GetBool("annotate-only") {
+	if p.config().GetBool("annotate-only") {
 		run.Conclusion = github.CheckConclusionNeutral
 	} else {
 		run.Conclusion = github.CheckConclusionFailure
@@ -136,7 +136,7 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 		return 5
 	}
 
-	if !p.vip().GetBool("exit-zero") {
+	if !p.config().GetBool("exit-zero") {
 		logrus.Info("Exiting 1 due to issues found by tool. Pass --exit-zero to disable this behavior")
 		// Exit non-zero to mark the result of the pipeline as failed since the tool found issues with the code
 		return 1
@@ -150,7 +150,7 @@ func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 	return func(cmd *cobra.Command, args []string) {
 		parse := pfunc(os.Stdin)
 		runner := parseRunner{
-			environment: newEnvironment(viper.GetViper(), os.Getenv),
+			environment: newEnvironment(viper.GetViper()),
 			name:        name,
 			parse:       parse,
 		}

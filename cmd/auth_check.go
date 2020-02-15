@@ -33,22 +33,24 @@ var authCheckCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		vip := viper.GetViper()
 		configureLogging(vip)
-		if err := runAuthCheck(vip, os.Getenv); err != nil {
+		if err := runAuthCheck(vip); err != nil {
 			logrus.WithError(err).Error("Auth check failed")
 			os.Exit(2)
 		}
 	},
 }
 
-func runAuthCheck(vip *viper.Viper, env func(string) string) error {
-	e := newEnvironment(vip, env)
-	repo, err := newRepo(vip, os.Getenv)
+func runAuthCheck(c config) error {
+	repo, err := newRepo(c)
 	if err != nil {
 		return err
 	}
+
+	e := newEnvironment(c)
 	if _, err = e.githubToken(repo); err != nil {
 		return err
 	}
+
 	logrus.Info("Authentication succeeded")
 	return nil
 }

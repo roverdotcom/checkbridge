@@ -28,7 +28,6 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 type repo struct {
@@ -57,14 +56,14 @@ func repoFromPath(path string) (repo, error) {
 	}, nil
 }
 
-func newRepo(v *viper.Viper, env func(string) string) (repo, error) {
-	passedRepo := v.GetString("github-repo")
+func newRepo(c config) (repo, error) {
+	passedRepo := c.GetString("github-repo")
 	if passedRepo != "" {
 		logrus.WithField("repo", passedRepo).Debug("Using repo from configuration")
 		return repoFromPath(passedRepo)
 	}
 
-	bkRepo := env("BUILDKITE_REPO")
+	bkRepo := c.GetString("buildkite-repo")
 	if bkRepo != "" {
 		logrus.WithField("repo", bkRepo).Debug("Using BUILDKITE_REPO environment value")
 		match := githubRepoRegex.FindStringSubmatch(bkRepo)
@@ -80,8 +79,8 @@ func newRepo(v *viper.Viper, env func(string) string) (repo, error) {
 	return repo{}, errors.New("missing repository configuration")
 }
 
-func getHeadSha(vip *viper.Viper) (string, error) {
-	passedSha := vip.GetString("commit-sha")
+func getHeadSha(c config) (string, error) {
+	passedSha := c.GetString("commit-sha")
 	if passedSha != "" {
 		logrus.WithField("sha", passedSha).Debug("Using configured SHA")
 		return passedSha, nil

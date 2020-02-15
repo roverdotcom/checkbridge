@@ -38,11 +38,11 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func configureLogging(vip *viper.Viper) {
+func configureLogging(c config) {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
 	})
-	if vip.GetBool("verbose") {
+	if c.GetBool("verbose") {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debug("Enabled verbose logging")
 	}
@@ -76,6 +76,7 @@ func init() {
 	viper.BindEnv("github-token", "GITHUB_TOKEN")
 	// Allow $GITHUB_REPOSITORY for GitHub actions
 	viper.BindEnv("github-repo", "GITHUB_REPOSITORY")
+	viper.BindEnv("buildkite-repo", "BUILDKITE_REPO")
 	viper.BindEnv("details-url", "BUILDKITE_BUILD_URL")
 	viper.BindEnv("commit-sha", "GITHUB_SHA")
 	viper.BindEnv("commit-sha", "BUILDKITE_COMMIT")
