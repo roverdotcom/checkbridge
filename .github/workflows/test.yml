@@ -4,6 +4,24 @@ on:
   push:
 
 jobs:
+  coverage:
+    runs-on: ubuntu-latest
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+
+      - name: Run tests with coverage
+        run: go test -coverprofile=coverage.txt -covermode=count ./...
+
+      - name: Upload coverage to CodeCov
+        with:
+          file: coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   test:
     runs-on: ${{ matrix.os }}
 
