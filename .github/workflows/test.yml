@@ -20,9 +20,11 @@ jobs:
         run: go test -coverprofile=coverage.txt -covermode=count ./...
 
       - name: Upload coverage to CodeCov
+        uses: codecov/codecov-action@v1
         with:
           file: coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 
   test:
     runs-on: ${{ matrix.os }}
