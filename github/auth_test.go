@@ -50,6 +50,13 @@ func TestGithubAuth_GetTokenNoEnv(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestReadPrivateKey_FromString(t *testing.T) {
+	g := githubAuth{}
+	_, err := g.readPrivateKey(rsaHeader + "not a real key")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid Key")
+}
+
 func TestMakeJWT_NoAppId(t *testing.T) {
 	conf := viper.New()
 	gh := githubAuth{
