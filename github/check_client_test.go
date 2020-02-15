@@ -21,11 +21,14 @@
 package github
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/roverdotcom/checkbridge/parser"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockHandler struct {
@@ -45,7 +48,7 @@ func createHandler(status int) mockHandler {
 	}
 }
 
-func createCheck(handler *mockHandler) error {
+func createCheckWithRun(handler http.Handler, run CheckRun) error {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -58,9 +61,19 @@ func createCheck(handler *mockHandler) error {
 		owner: "owner",
 	}
 
-	return client.CreateCheck(CheckRun{
+	return client.CreateCheck(run)
+}
+
+func createCheck(handler http.Handler) error {
+	return createCheckWithRun(handler, CheckRun{
 		Name: "my-name",
 	})
+}
+
+func TestNewCheck_client(t *testing.T) {
+	r := dummyRepo{"owner", "repo"}
+	c := NewCheckClient("token", r)
+	assert.Equal(t, c.(checkClient).owner, "owner")
 }
 
 func TestCreateCheck_OK(t *testing.T) {
@@ -74,4 +87,34 @@ func TestCreateCheck_NotFound(t *testing.T) {
 	handler := createHandler(404)
 	err := createCheck(&handler)
 	assert.Error(t, err)
+}
+func TestCreateCheck_ManyAnnotations(t *testing.T) {
+	sentRun := CheckRun{}
+	annotations := make([]parser.Annotation, 100)
+	run := CheckRun{
+		Output: parser.Result{
+			Annotations: annotations,
+		},
+	}
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(201)
+		w.Write([]byte(`{}`))
+		decoder := json.NewDecoder(r.Body)
+		defer r.Body.Close()
+		require.NoError(t, decoder.Decode(&sentRun))
+	})
+
+	err := createCheckWithRun(handler, run)
+
+	require.NoError(t, err, "error sending check")
+	assert.Equal(t, 50, len(sentRun.Output.Annotations), "expected large annotation list truncated to 50")
+}
+
+func TestCreateCheck_BadURL(t *testing.T) {
+	c := checkClient{
+		client: client{
+			apiBase: "gopher://",
+		},
+	}
+	assert.Error(t, c.CreateCheck(CheckRun{}))
 }

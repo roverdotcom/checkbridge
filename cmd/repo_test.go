@@ -40,6 +40,14 @@ func (e envStub) get(key string) string {
 	return ""
 }
 
+func TestNewRepo_MalformedRepo(t *testing.T) {
+	vip := viper.New()
+	vip.Set("github-repo", "foo-bar.git")
+	_, err := newRepo(vip, envStub{}.get)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "malformed")
+}
+
 func TestNewRepo_FromGithub(t *testing.T) {
 	vip := viper.New()
 	vip.Set("github-repo", "foo/bar")
