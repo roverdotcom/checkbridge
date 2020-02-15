@@ -25,7 +25,6 @@ jobs:
           file: coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-          yml: .github/codecov.yml
 
   test:
     runs-on: ${{ matrix.os }}
