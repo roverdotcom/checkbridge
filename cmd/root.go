@@ -20,6 +20,8 @@
 package cmd
 
 import (
+	"io"
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -48,6 +50,24 @@ func configureLogging(c config) {
 	}
 }
 
+func getInput(c config) (io.ReadCloser, error) {
+	if path := c.GetString("file"); path != "" {
+		return os.Open(path)
+	}
+
+	return os.Stdin, nil
+}
+
+func mustGetInput(c config) io.ReadCloser {
+	input, err := getInput(c)
+
+	if err != nil {
+		logrus.WithError(err).Error("Unable to open input")
+		os.Exit(3)
+	}
+	return input
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 	viper.SetEnvPrefix("checkbridge")
@@ -58,6 +78,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("annotate-only", "o", false, "only leave annotations, never mark check as failed")
 	rootCmd.PersistentFlags().BoolP("mark-in-progress", "m", false, "mark check as in progress before parsing")
 	rootCmd.PersistentFlags().StringP("details-url", "d", "", "details URL to send for check")
+
+	// Parser configuration
+	rootCmd.PersistentFlags().StringP("file", "f", "", "read input from named file instead of stdin")
 
 	// Authentication configuration flags
 	rootCmd.PersistentFlags().IntP("application-id", "a", 0, "GitHub application ID (numeric)")

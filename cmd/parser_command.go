@@ -148,9 +148,12 @@ func (p parseRunner) reportResults(run github.CheckRun, result parser.Result, ap
 
 func makeCobraCommand(name string, pfunc parserFunc) cobraRunner {
 	return func(cmd *cobra.Command, args []string) {
-		parse := pfunc(os.Stdin)
+		v := viper.GetViper()
+		input := mustGetInput(v)
+		defer input.Close()
+		parse := pfunc(input)
 		runner := parseRunner{
-			environment: newEnvironment(viper.GetViper()),
+			environment: newEnvironment(v),
 			name:        name,
 			parse:       parse,
 		}

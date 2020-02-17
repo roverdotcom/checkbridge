@@ -37,7 +37,10 @@ var regexCmd = &cobra.Command{
 	Use:   "regex",
 	Short: "Parse results via regular expression",
 	Run: func(cmd *cobra.Command, args []string) {
-		if code := runRegexCommand(viper.GetViper(), os.Stdin); code != 0 {
+		v := viper.GetViper()
+		input := mustGetInput(v)
+		defer input.Close()
+		if code := runRegexCommand(v, input); code != 0 {
 			os.Exit(code)
 		}
 	},
