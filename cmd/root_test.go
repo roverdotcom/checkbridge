@@ -20,10 +20,12 @@
 package cmd
 
 import (
+	"os"
 	"testing"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRootCommand_OK(t *testing.T) {
@@ -38,4 +40,17 @@ func TestConfigureLogging_Verbose(t *testing.T) {
 	vip := viper.New()
 	vip.Set("verbose", true)
 	configureLogging(vip)
+}
+
+func TestGetInput_BadPath(t *testing.T) {
+	vip := viper.New()
+	vip.Set("file", "bad/path")
+	_, err := getInput(vip)
+	assert.Error(t, err)
+}
+
+func TestGetInput_Stdin(t *testing.T) {
+	in, err := getInput(viper.New())
+	require.NoError(t, err)
+	assert.Equal(t, in, os.Stdin)
 }
