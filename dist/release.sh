@@ -26,8 +26,8 @@ fi
 
 
 # Matrix of os and arch combos to build
-os_list=array( linux darwin )
-arch_list=array( amd64 arm64 )
+os_list=( linux darwin )
+arch_list=( amd64 arm64 )
 
 for os in "${os_list[@]}"; do
   for arch in "${arch_list[@]}"; do
