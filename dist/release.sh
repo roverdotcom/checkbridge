@@ -24,8 +24,13 @@ if ! grep "$VERSION" README.md > /dev/null ; then
   exit 4
 fi
 
-for os in linux darwin; do
-  for arch in amd64 arm64; do
+
+# Matrix of os and arch combos to build
+os_list=array( linux darwin )
+arch_list=array( amd64 arm64 )
+
+for os in "${os_list[@]}"; do
+  for arch in "${arch_list[@]}"; do
     name="${BIN_NAME}-$VERSION.$os-$arch"
     path="${DIST_DIR}/${name}"
     echo "Building $name - $VERSION"
