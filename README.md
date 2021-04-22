@@ -35,7 +35,7 @@ Precompiled binaries are available for all releases [on GitHub]. Because they ar
 static binaries, you can simply download them and run them. For example, on Linux:
 
 ```bash
-curl -L https://github.com/roverdotcom/checkbridge/releases/download/v0.0.3/checkbridge-v0.0.3.linux-amd64.tar.gz \
+curl -L https://github.com/roverdotcom/checkbridge/releases/download/v0.0.4/checkbridge-v0.0.4.linux-amd64.tar.gz \
     | tar zxf - -C /usr/local/bin
 ```
 
