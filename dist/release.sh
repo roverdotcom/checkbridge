@@ -24,18 +24,23 @@ if ! grep "$VERSION" README.md > /dev/null ; then
   exit 4
 fi
 
-ARCH="$(go env GOARCH)"
 
-for os in linux darwin; do
-    name="${BIN_NAME}-$VERSION.$os-$ARCH"
+# Matrix of os and arch combos to build
+os_list=( linux darwin )
+arch_list=( amd64 arm64 )
+
+for os in "${os_list[@]}"; do
+  for arch in "${arch_list[@]}"; do
+    name="${BIN_NAME}-$VERSION.$os-$arch"
     path="${DIST_DIR}/${name}"
     echo "Building $name - $VERSION"
-    GOOS=$os GOARCH=$ARCH CGO_ENABLED=0 go build \
+    GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build \
         -ldflags "-X github.com/roverdotcom/checkbridge/cmd.Version=$VERSION" \
         -o $path
     gzip < $path > $path.gz
     cp "$path" "${DIST_DIR}/${BIN_NAME}"
     (cd ${DIST_DIR} && tar zcf $path.tar.gz "${BIN_NAME}" && rm "${BIN_NAME}")
-    mkdir -p "$DIST_DIR/$os"
-    cp "$path" "$DIST_DIR/$os/${BIN_NAME}"
+    mkdir -p "$DIST_DIR/$os/$arch"
+    cp "$path" "$DIST_DIR/$os/$arch/${BIN_NAME}"
+  done
 done
